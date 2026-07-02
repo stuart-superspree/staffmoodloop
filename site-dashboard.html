@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodLoop Staff · Site Dashboard (concept)</title>
+<style>
+  :root{
+    --bg:#0c0913;
+    --bg2:#0f0b18;
+    --panel:#171022;
+    --panel2:#1d1430;
+    --line:#2a2040;
+    --line2:#372a52;
+    --text:#f3eefb;
+    --muted:#a596c4;
+    --muted2:#7c6f99;
+    --purple:#a855f7;
+    --purple2:#c026d3;
+    --pink:#ec4899;
+    --green:#10b981;
+    --yellow:#eab308;
+    --red:#ef4444;
+    --glow:0 0 40px rgba(168,85,247,.18);
+    --radius:18px;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg)}
+  body{font-family:var(--sans);color:var(--text);-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(900px 500px at 78% -8%, rgba(192,38,211,.16), transparent),
+      radial-gradient(700px 500px at 8% 110%, rgba(168,85,247,.12), transparent),
+      var(--bg);
+    min-height:100vh;}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#2c2244;border-radius:8px}
+
+  .app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+  @media(max-width:900px){.app{grid-template-columns:1fr}}
+
+  /* ---------- sidebar ---------- */
+  .side{border-right:1px solid var(--line);padding:22px 18px;display:flex;flex-direction:column;gap:6px;
+    background:linear-gradient(180deg,rgba(29,20,48,.5),rgba(12,9,19,.2));position:sticky;top:0;height:100vh}
+  @media(max-width:900px){.side{height:auto;position:static}}
+  .logo{display:flex;align-items:center;gap:11px;margin-bottom:22px}
+  .logo .mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--pink));
+    display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:var(--glow)}
+  .logo b{font-size:17px;display:block;letter-spacing:.2px}
+  .logo small{font-size:11px;color:var(--muted)}
+  .nav{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+  .nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--muted);
+    cursor:pointer;font-size:14.5px;font-weight:500;transition:.15s;text-decoration:none;position:relative}
+  .nav a:hover{color:var(--text);background:rgba(168,85,247,.08)}
+  .nav a.on{color:#fff;background:linear-gradient(90deg,rgba(168,85,247,.28),rgba(168,85,247,.05));
+    border:1px solid var(--line2);box-shadow:inset 3px 0 0 var(--purple)}
+  .nav a .ic{font-size:17px;width:20px;text-align:center}
+  .nav a .bdg{margin-left:auto;background:var(--red);color:#fff;font-size:11px;font-weight:700;
+    min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+  .filters{margin-top:8px;border-top:1px solid var(--line);padding-top:16px;flex:1;overflow-y:auto}
+  .filters .ft{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);margin:0 0 8px;font-weight:700}
+  .filters label{font-size:11.5px;color:var(--muted);display:block;margin:14px 0 6px}
+  select{width:100%;background:var(--panel);border:1px solid var(--line2);color:var(--text);
+    border-radius:10px;padding:9px 10px;font-family:inherit;font-size:13px}
+  .zchips{display:flex;flex-wrap:wrap;gap:6px}
+  .zchip{font-size:11.5px;border:1px solid var(--line2);border-radius:999px;padding:6px 11px;cursor:pointer;color:var(--muted);transition:.15s}
+  .zchip:hover{color:var(--text)}
+  .zchip.on{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border-color:transparent}
+  .exports{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+  .xbtn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:11px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--text);transition:.15s;font-family:inherit}
+  .xbtn.primary{background:linear-gradient(135deg,var(--purple),var(--purple2));border-color:transparent}
+  .xbtn:hover{filter:brightness(1.12)}
+
+  /* ---------- main ---------- */
+  .main{padding:26px 30px 90px;position:relative;max-width:1180px}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;gap:16px;flex-wrap:wrap}
+  .page-head h1{font-size:23px;margin:0 0 3px}
+  .page-head p{margin:0;color:var(--muted);font-size:13.5px}
+  .rangetabs{display:flex;gap:6px}
+  .rtab{font-size:12.5px;padding:8px 14px;border-radius:10px;border:1px solid var(--line2);cursor:pointer;color:var(--muted)}
+  .rtab.on{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border-color:transparent}
+
+  .panel{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--glow)}
+
+  /* pulse */
+  .pulse{display:flex;align-items:center;justify-content:space-between;padding:30px 34px;margin-bottom:18px;gap:20px;flex-wrap:wrap}
+  .pulse h2{margin:0 0 4px;font-size:24px}
+  .pulse .sub{color:var(--muted);font-size:14px;margin-bottom:22px}
+  .pulse .nums{display:flex;align-items:flex-end;gap:30px}
+  .pulse .big{font-size:54px;font-weight:800;line-height:1;background:linear-gradient(135deg,#fff,var(--pink));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .pulse .big + .lab,.pulse .nums .lab{font-size:12px;color:var(--muted)}
+  .pulse .delta{font-size:24px;font-weight:700;color:var(--green)}
+  .pulse .delta.neg{color:var(--red)}
+  .pulse .delta .lab{display:block;font-size:11.5px;color:var(--muted);font-weight:500;margin-top:3px}
+  .gauge{position:relative;width:210px;height:210px;flex:0 0 auto}
+  .gauge .ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .ctr b{font-size:46px;font-weight:800}
+  .gauge .ctr span{font-size:13px;letter-spacing:.18em;color:var(--muted)}
+
+  /* mood cards */
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
+  @media(max-width:1050px){.grid4{grid-template-columns:repeat(2,1fr)}}
+  .mcard{padding:20px;border-radius:16px;position:relative;overflow:hidden}
+  .mcard .top{display:flex;align-items:center;gap:11px;margin-bottom:14px}
+  .mcard .emo{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+  .mcard .top b{font-size:15px;display:block}
+  .mcard .top small{font-size:11.5px;color:var(--muted)}
+  .mcard .count{font-size:34px;font-weight:800;margin-bottom:10px}
+  .mcard .deltas{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:11px}
+  .mcard .deltas .up{color:var(--green);font-weight:600}
+  .mcard .deltas .down{color:var(--red);font-weight:600}
+  .mcard .deltas .t{color:var(--muted2)}
+  .mcard .pbar{height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+  .mcard .pbar i{display:block;height:100%;border-radius:3px}
+  .mcard.alert{box-shadow:0 0 0 1px var(--red),0 0 28px rgba(239,68,68,.25)}
+  .warn-ic{position:absolute;top:18px;right:18px;font-size:16px;opacity:.8}
+
+  /* heatmap */
+  .hm{padding:24px;margin-bottom:18px}
+  .hm .hh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+  .hm h3{margin:0;font-size:17px}
+  .hm .hh p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted)}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
+  .zones{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  @media(max-width:1050px){.zones{grid-template-columns:repeat(2,1fr)}}
+  .zone{border-radius:14px;padding:18px 14px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:.15s;border:1px solid transparent;position:relative}
+  .zone:hover{transform:translateY(-3px)}
+  .zone .zn{font-size:14px;font-weight:700}
+  .zone .zs{font-size:30px;font-weight:800}
+  .zone .zc{font-size:11px;opacity:.85}
+  .zone .pulse-dot{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%;background:#fff;opacity:.5;animation:bp 1.8s infinite}
+  @keyframes bp{0%{box-shadow:0 0 0 0 rgba(255,255,255,.5)}70%{box-shadow:0 0 0 8px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+
+  /* trends */
+  .twrap{padding:24px;margin-bottom:18px}
+  .twrap h3{margin:0 0 16px;font-size:17px}
+  .chart{width:100%;height:300px}
+  .annot{fill:var(--yellow);font-size:11px;font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:1050px){.grid2{grid-template-columns:1fr}}
+  .donut-wrap{display:flex;align-items:center;gap:24px}
+  .donut-legend{display:flex;flex-direction:column;gap:10px;font-size:13px}
+  .donut-legend .dl{display:flex;align-items:center;gap:9px}
+  .donut-legend .dl i{width:11px;height:11px;border-radius:3px}
+  .donut-legend .dl b{margin-left:auto;font-variant-numeric:tabular-nums}
+  .week .wrow{margin-bottom:14px}
+  .week .wt{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+  .week .wbar{height:9px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden}
+  .week .wbar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--purple),var(--pink))}
+
+  /* alerts */
+  .alerts-head{display:flex;gap:10px;margin-bottom:18px}
+  .pill{font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px}
+  .pill.crit{background:rgba(239,68,68,.16);color:#ff8a8a;border:1px solid rgba(239,68,68,.4)}
+  .pill.warn{background:rgba(234,179,8,.14);color:#f3d36b;border:1px solid rgba(234,179,8,.4)}
+  .secti{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin:18px 0 12px}
+  .secti.crit{color:#ff8a8a}.secti.warn{color:#f3d36b}
+  .acard{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:15px;margin-bottom:13px;background:var(--panel);border:1px solid var(--line)}
+  .acard.crit{border-left:3px solid var(--red);box-shadow:0 0 26px rgba(239,68,68,.12)}
+  .acard.warn{border-left:3px solid var(--yellow)}
+  .acard .aic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}
+  .acard.crit .aic{background:rgba(239,68,68,.15)}
+  .acard.warn .aic{background:rgba(234,179,8,.15)}
+  .acard .ab{flex:1;min-width:0}
+  .acard .ab b{font-size:15.5px}
+  .acard .ab p{margin:4px 0 7px;font-size:13px;color:var(--muted)}
+  .acard .meta{font-size:11.5px;color:var(--muted2);display:flex;gap:16px;flex-wrap:wrap}
+  .acard .meta .imp{color:#ff8a8a;font-weight:600}
+  .acard .when{font-size:11.5px;color:var(--muted2);white-space:nowrap;margin-bottom:10px}
+  .acard .right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .takebtn{border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:#fff;background:linear-gradient(135deg,var(--red),#d81f4a)}
+  .takebtn.warn{background:transparent;border:1px solid var(--yellow);color:#f3d36b}
+  .takebtn:hover{filter:brightness(1.1)}
+  .acard.resolved{opacity:.55}
+  .acard.resolved .takebtn{background:rgba(16,185,129,.2);color:#7fe9c0;pointer-events:none}
+  .empty{color:var(--muted);text-align:center;padding:40px;border:1px dashed var(--line2);border-radius:14px}
+
+  .live-bar{position:fixed;bottom:0;left:248px;right:0;background:rgba(12,9,19,.85);backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);padding:13px 30px;display:flex;align-items:center;justify-content:space-between;z-index:40}
+  @media(max-width:900px){.live-bar{left:0}}
+  .live-bar .l{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:9px}
+  .live-bar .ldot{width:9px;height:9px;border-radius:50%;background:var(--green);animation:bp2 1.6s infinite}
+  @keyframes bp2{0%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+
+  /* feedback FAB + drawer (colleague capture) */
+  .fab{position:fixed;bottom:64px;right:26px;z-index:60;border:none;cursor:pointer;border-radius:999px;
+    padding:15px 22px;font-size:14.5px;font-weight:700;color:#fff;font-family:inherit;
+    background:linear-gradient(135deg,var(--purple),var(--pink));box-shadow:0 10px 30px rgba(192,38,211,.4);display:flex;align-items:center;gap:10px}
+  .fab:hover{transform:translateY(-2px)}
+  .scrim{position:fixed;inset:0;background:rgba(4,2,10,.55);z-index:70;opacity:0;pointer-events:none;transition:.25s}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100vh;width:390px;max-width:92vw;z-index:80;
+    transform:translateX(100%);transition:.3s cubic-bezier(.4,0,.2,1);background:#f6f4ee;color:#1c1d1a;
+    display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.4)}
+  .drawer.show{transform:translateX(0)}
+  .dr-head{background:#0f3d2e;color:#fff;padding:20px 22px;position:relative}
+  .dr-head .amp{font-family:Georgia,serif;font-style:italic;font-size:20px;opacity:.85}
+  .dr-head h2{margin:6px 0 2px;font-size:19px}
+  .dr-head p{margin:0;font-size:12.5px;opacity:.82}
+  .dr-head .x{position:absolute;top:18px;right:18px;cursor:pointer;font-size:20px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center}
+  .dr-body{flex:1;overflow-y:auto;padding:20px}
+  .dlab{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6b7269;margin:18px 0 9px;font-weight:700}
+  .dlab:first-child{margin-top:0}
+  .zopts{display:flex;flex-wrap:wrap;gap:8px}
+  .zopt{border:1px solid #e3e1d8;background:#fff;border-radius:11px;padding:10px 13px;font-size:13px;cursor:pointer;flex:1 1 calc(50% - 8px)}
+  .zopt.sel{border-color:#0f3d2e;background:#e7f0ea;font-weight:600}
+  .moods{display:flex;gap:10px}
+  .mood{flex:1;border:1px solid #e3e1d8;background:#fff;border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;transition:.15s}
+  .mood:hover{transform:translateY(-2px)}
+  .mood.sel{border-width:2px}
+  .mood .me{font-size:30px;display:block;line-height:1}
+  .mood .ml{font-size:10.5px;margin-top:7px;color:#4a4a44;font-weight:600}
+  .rchips{display:flex;flex-wrap:wrap;gap:8px}
+  .rchip{border:1px solid #e3e1d8;background:#fff;border-radius:10px;padding:8px 12px;font-size:12.5px;cursor:pointer}
+  .rchip.sel{border-color:#0f3d2e;background:#e7f0ea;font-weight:600}
+  .drawer textarea{width:100%;border:1px solid #e3e1d8;border-radius:11px;padding:11px;font-family:inherit;font-size:13.5px;resize:none;min-height:70px}
+  .dfollow{display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px;border:1px solid #e3e1d8;border-radius:12px;background:#fafaf7}
+  .tgl{width:42px;height:24px;border-radius:999px;background:#d9d7cd;position:relative;cursor:pointer;flex:0 0 auto;transition:.2s}
+  .tgl.on{background:#2c6b4f}
+  .tgl::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}
+  .tgl.on::after{left:21px}
+  .dfollow .t{font-size:12.5px}.dfollow .t b{display:block;font-size:13px}
+  .dbtn{width:100%;border:none;border-radius:12px;padding:14px;font-size:14.5px;font-weight:700;background:#0f3d2e;color:#fff;cursor:pointer;margin-top:18px;font-family:inherit}
+  .dbtn:disabled{background:#bcc2bb;cursor:not-allowed}
+  .dbtn.ghost{background:#fff;color:#0f3d2e;border:1px solid #0f3d2e}
+  .dcenter{text-align:center;padding:30px 10px}
+  .dtick{width:70px;height:70px;border-radius:50%;background:#e7f0ea;color:#0f3d2e;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px}
+  .dcenter h3{margin:0 0 8px;font-size:19px}
+  .dcenter p{color:#6b7269;font-size:13.5px;max-width:260px;margin:0 auto}
+  .dreply{margin-top:20px;border:1px solid #0f3d2e;border-radius:14px;background:#e7f0ea;padding:16px;text-align:left}
+  .dreply .from{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .dreply .pp{width:36px;height:36px;border-radius:50%;background:#0f3d2e;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .dreply .from b{font-size:13.5px}.dreply .from small{display:block;color:#6b7269;font-size:11.5px}
+  .dreply .msg{font-size:13.5px;line-height:1.5}
+
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);z-index:120;
+    background:#1d1430;border:1px solid var(--line2);color:#fff;padding:13px 20px;border-radius:13px;font-size:13.5px;
+    box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.3s;display:flex;align-items:center;gap:11px;max-width:90vw}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .td{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+
+  /* ---------- take-action compose (P1 - human reply before send) ---------- */
+  .cmp-scrim{position:fixed;inset:0;background:rgba(4,2,10,.6);z-index:100;opacity:0;pointer-events:none;transition:.25s}
+  .cmp-scrim.show{opacity:1;pointer-events:auto}
+  .cmp{position:fixed;top:50%;left:50%;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;z-index:110;
+    width:520px;max-width:92vw;background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line2);
+    border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.6);transition:.25s}
+  .cmp.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .cmp .ch{padding:18px 22px;border-bottom:1px solid var(--line)}
+  .cmp .ch b{font-size:16px}
+  .cmp .ch p{margin:4px 0 0;font-size:12.5px;color:var(--muted)}
+  .cmp .cb{padding:18px 22px}
+  .cmp .who{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+  .cmp .wchip{font-size:11.5px;border:1px solid var(--line2);border-radius:999px;padding:5px 11px;color:var(--muted)}
+  .cmp .wchip b{color:var(--text)}
+  .cmp textarea{width:100%;min-height:110px;resize:none;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;
+    color:var(--text);padding:13px;font-family:inherit;font-size:13.5px;line-height:1.5;box-sizing:border-box}
+  .cmp textarea:focus{outline:none;border-color:var(--purple)}
+  .cmp .note{font-size:11px;color:var(--muted2);margin-top:8px}
+  .cmp .cf{display:flex;gap:10px;justify-content:flex-end;padding:0 22px 20px}
+  .cmp .cbtn{border:none;border-radius:10px;padding:11px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  .cmp .cbtn.go{color:#fff;background:linear-gradient(135deg,var(--purple),var(--purple2))}
+  .cmp .cbtn.x{background:transparent;border:1px solid var(--line2);color:var(--muted)}
+
+  /* ---------- live voices (P4 - the words behind the numbers) ---------- */
+  .voices{padding:20px 24px;margin-bottom:18px}
+  .voices h3{margin:0 0 6px;font-size:17px}
+  .voices .vsub{margin:0 0 12px;font-size:12.5px;color:var(--muted)}
+  .vrow{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+  .vrow:last-child{border-bottom:none}
+  .vdot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;margin-top:5px}
+  .vrow .vt{font-size:13px;line-height:1.45}
+  .vrow .vm{font-size:11px;color:var(--muted2);margin-top:3px}
+  .vrow .await{font-size:10px;font-weight:700;color:#f3d36b;border:1px solid rgba(234,179,8,.4);border-radius:6px;padding:2px 6px;margin-left:8px;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="side">
+    <div class="logo">
+      <div class="mark">🙂</div>
+      <div><b>MoodLoop Staff</b><small>Site dashboard · internal</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <a data-view="overview" class="on"><span class="ic">▦</span> Overview</a>
+      <a data-view="trends"><span class="ic">📈</span> Trends</a>
+      <a data-view="alerts"><span class="ic">🔔</span> Alerts <span class="bdg" id="navBadge">0</span></a>
+    </nav>
+    <div class="filters">
+      <p class="ft">Filters</p>
+      <label>Date range</label>
+      <select id="fDate"><option>Last 24 hours</option><option>Last 7 days</option><option>Last 30 days</option></select>
+      <label>Team</label>
+      <div class="zchips" id="zchips"></div>
+      <label style="margin-top:16px">Demographics</label>
+      <select><option>All colleagues</option><option>Day shift</option><option>Night shift</option></select>
+      <div class="exports">
+        <button class="xbtn primary" onclick="exportPDF()">⭳ Export PDF</button>
+        <button class="xbtn" onclick="exportCSV()">▤ Export CSV</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main" id="main"></main>
+</div>
+
+<div class="live-bar">
+  <div class="l"><span class="ldot"></span> Last updated: <span id="updTime">just now</span> · Live feed from colleague check-ins</div>
+  <div class="l">Site: Springfield · <span id="totResp">0</span> responses today</div>
+</div>
+
+<!-- feedback capture -->
+<button class="fab" onclick="openDrawer()">📱 Staff check-in</button>
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="dr-head">
+    <div class="amp">&amp;</div>
+    <div class="x" onclick="closeDrawer()">✕</div>
+    <h2>How is your shift?</h2>
+    <p>Anonymous by default. You choose if you want a reply.</p>
+  </div>
+  <div class="dr-body" id="drBody"></div>
+</aside>
+
+<!-- take-action compose (P1) -->
+<div class="cmp-scrim" id="cmpScrim" onclick="closeCompose()"></div>
+<div class="cmp" id="cmp">
+  <div class="ch"><b id="cmpTitle">Take action</b><p id="cmpSub"></p></div>
+  <div class="cb" id="cmpBody"></div>
+  <div class="cf" id="cmpFoot"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   SHARED STORE: the single source both MoodLoop and the capture app read
+   ===================================================================== */
+const ZONES = [
+  {id:'entry',label:'Front of house'},
+  {id:'fashion',label:'Operations'},
+  {id:'electronics',label:'Logistics'},
+  {id:'home',label:'Canteen'},
+  {id:'checkout',label:'Customer service'}
+];
+const MOODS = [
+  {id:'vhappy', label:'Very Happy', sub:'Colleagues thriving', val:100, emoji:'😄', color:'var(--purple)',  grad:'linear-gradient(135deg,#a855f7,#c026d3)'},
+  {id:'happy',  label:'Happy',      sub:'Colleagues doing fine', val:80,  emoji:'🙂', color:'var(--green)',   grad:'linear-gradient(135deg,#10b981,#34d399)'},
+  {id:'nhappy', label:'Not Happy',  sub:'Needs attention',     val:42,  emoji:'😕', color:'var(--yellow)',  grad:'linear-gradient(135deg,#eab308,#f59e0b)'},
+  {id:'vunhappy',label:'Very Unhappy',sub:'Colleagues struggling',   val:12,  emoji:'😠', color:'var(--red)',     grad:'linear-gradient(135deg,#ef4444,#f43f5e)'}
+];
+const REASONS = {
+  pos:['Great team spirit','Well staffed','Good kit','Felt supported'],
+  neg:['Understaffed','Equipment problems','Workload too high','Rota issues','Felt unsupported']
+};
+const PARTNER = {name:'Dana K.',init:'DK'};
+
+/* P5 - shared vocabulary contract with the Loop capture app:
+   Loop's 0-10 scores map to MoodLoop's four buckets.
+   9-10 -> vhappy | 7-8 -> happy | 4-6 -> nhappy | 0-3 -> vunhappy
+   This single mapping is the first line of the Phase 2 data contract. */
+const SCORE_TO_MOOD = s => s>=9?'vhappy':s>=7?'happy':s>=4?'nhappy':'vunhappy';
+
+/* seeded aggregate counts: agg[zoneId][moodId] */
+const agg = {
+  entry:    {vhappy:320, happy:260, nhappy:60,  vunhappy:20},
+  fashion:  {vhappy:300, happy:250, nhappy:70,  vunhappy:25},
+  electronics:{vhappy:190, happy:220, nhappy:120, vunhappy:90},
+  home:     {vhappy:240, happy:200, nhappy:80,  vunhappy:30},
+  checkout: {vhappy:90,  happy:110, nhappy:140, vunhappy:159}
+};
+/* small "recent affected" counters drive alert Impact (tick up live) */
+const recentImpact = {entry:6, fashion:9, electronics:28, home:14, checkout:89};
+
+/* P3/M2 - real alert durations: when did each zone first cross its threshold?
+   (seeded to reproduce the design's figures; maintained live from here on) */
+const alertSince = {checkout:mins(23), electronics:mins(12)};
+function durOf(zid){
+  const t=alertSince[zid]; if(!t)return 'just now';
+  const m=Math.max(1,Math.round((now()-t)/60000));
+  return m+' min';
+}
+
+/* baselines for the live Pulse deltas */
+const BASE_YESTERDAY = 71.5, BASE_LASTWEEK = 66.0;
+
+/* per-bucket trend labels (visual fidelity) */
+const BUCKET_DELTAS = {
+  vhappy:{d24:'+18.5%',d7:'+24.2%',up:true},
+  happy:{d24:'+8.3%',d7:'+12.1%',up:true},
+  nhappy:{d24:'+4.2%',d7:'-8.7%',up:false},
+  vunhappy:{d24:'+2.1%',d7:'-15.3%',up:false}
+};
+
+/* recent individual responses (feed alerts + close-the-loop) */
+let uid=200;
+function now(){return Date.now()} function mins(m){return now()-m*60000}
+let responses = [
+  {id:++uid,zone:'checkout',mood:'vunhappy',text:'Two absences not covered. We are running well short today.',tags:['Understaffed'],t:mins(2),name:'Mark',followup:true,status:'open'},
+  {id:++uid,zone:'electronics',mood:'vunhappy',text:'Key equipment down again. Everything by hand all shift.',tags:['Equipment problems'],t:mins(8),name:'George',followup:true,status:'open'},
+  {id:++uid,zone:'checkout',mood:'nhappy',text:'The main system crashed twice during the busiest hour.',tags:['Equipment problems'],t:mins(15),name:'Lena',followup:false,status:'open'},
+  {id:++uid,zone:'home',mood:'happy',text:'New starter buddy system is working really well.',tags:['Felt supported'],t:mins(34),name:'Sue',followup:false,status:'closed'},
+  {id:++uid,zone:'fashion',mood:'vhappy',text:'Best team I have worked with. Today flew by.',tags:['Great team spirit'],t:mins(52),name:'Priya',followup:false,status:'closed'}
+];
+
+/* trend series (happiness over time); last 24h point is recomputed live */
+const TREND = {
+  'Last 24 hours':{labels:['6AM','9AM','12PM','3PM','6PM','9PM','Now'], vals:[52,66,71,58,74,77,75], dipIdx:3, dipLabel:'Cover shortfall'},
+  'Last 7 days':{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], vals:[68,72,70,66,74,79,76], dipIdx:3, dipLabel:'Thu dip'},
+  'Last 30 days':{labels:['W1','W2','W3','W4','Now'], vals:[63,69,72,71,75], dipIdx:0, dipLabel:'Launch week'}
+};
+const WEEKDAYS = [['Monday',82],['Tuesday',79],['Wednesday',84],['Thursday',78],['Friday',81]];
+
+/* =====================================================================
+   METRICS
+   ===================================================================== */
+function moodOf(id){return MOODS.find(m=>m.id===id)}
+function zoneOf(id){return ZONES.find(z=>z.id===id)}
+function zonesActive(){return filterZone==='all'?ZONES.map(z=>z.id):[filterZone]}
+
+function bucketCount(moodId,zoneList){
+  return (zoneList||ZONES.map(z=>z.id)).reduce((s,z)=>s+agg[z][moodId],0);
+}
+function totalResponses(zoneList){
+  return MOODS.reduce((s,m)=>s+bucketCount(m.id,zoneList),0);
+}
+function happiness(zoneList){
+  const tot=totalResponses(zoneList); if(!tot)return 0;
+  const sum=MOODS.reduce((s,m)=>s+bucketCount(m.id,zoneList)*m.val,0);
+  return sum/tot;
+}
+function zoneHappiness(z){
+  const tot=MOODS.reduce((s,m)=>s+agg[z][m.id],0); if(!tot)return 0;
+  return MOODS.reduce((s,m)=>s+agg[z][m.id]*m.val,0)/tot;
+}
+function ago(t){const m=Math.round((now()-t)/60000);if(m<1)return'just now';if(m<60)return m+' min ago';return Math.round(m/60)+'h ago'}
+
+/* =====================================================================
+   VIEW STATE
+   ===================================================================== */
+let view='overview', filterZone='all', filterRange='Last 24 hours';
+const main=document.getElementById('main');
+
+function render(){
+  document.getElementById('navBadge').textContent = activeAlerts().filter(a=>!a.resolved).length;
+  document.getElementById('totResp').textContent = totalResponses().toLocaleString();
+  document.getElementById('updTime').textContent = 'just now';
+  if(view==='overview') renderOverview();
+  else if(view==='trends') renderTrends();
+  else renderAlerts();
+}
+
+/* ---------- OVERVIEW ---------- */
+function renderOverview(){
+  const za=zonesActive();
+  const pulse=happiness(za);
+  const dY=(pulse-BASE_YESTERDAY), dW=(pulse-BASE_LASTWEEK);
+  const moodWord = pulse>=78?'HAPPY':pulse>=60?'POSITIVE':pulse>=45?'MIXED':'AT RISK';
+
+  let h=`<div class="page-head"><div><h1>Happiness Pulse</h1>
+    <p>Real-time colleague sentiment ${filterZone==='all'?'across all zones':'· '+zoneOf(filterZone).label}</p></div></div>`;
+
+  /* pulse panel */
+  h+=`<div class="panel pulse">
+      <div>
+        <div class="nums">
+          <div><div class="big">${pulse.toFixed(1)}%</div><div class="lab">Current score</div></div>
+          <div class="delta ${dY<0?'neg':''}">${dY>=0?'+':''}${dY.toFixed(1)}%<span class="lab">vs yesterday</span></div>
+          <div class="delta ${dW<0?'neg':''}">${dW>=0?'+':''}${dW.toFixed(1)}%<span class="lab">vs last week</span></div>
+        </div>
+      </div>
+      ${gaugeSVG(pulse, moodWord)}
+    </div>`;
+
+  /* mood buckets */
+  h+=`<div class="grid4">`;
+  MOODS.forEach(m=>{
+    const c=bucketCount(m.id,za);
+    const tot=totalResponses(za)||1;
+    const bd=BUCKET_DELTAS[m.id];
+    const isAlert=m.id==='vunhappy';
+    h+=`<div class="panel mcard ${isAlert?'alert':''}">
+        ${m.id==='nhappy'?'<span class="warn-ic">⚠️</span>':''}${m.id==='vunhappy'?'<span class="warn-ic" style="color:var(--red)">⛔</span>':''}
+        <div class="top"><div class="emo" style="background:${m.grad}">${m.emoji}</div>
+          <div><b>${m.label}</b><small>${m.sub}</small></div></div>
+        <div class="count" style="color:${m.color}">${c.toLocaleString()}</div>
+        <div class="deltas">
+          <span><span class="${bd.up?'up':'down'}">${bd.d24} </span><span class="t">24h</span></span>
+          <span><span class="${bd.d7.startsWith('-')?'down':'up'}">${bd.d7} </span><span class="t">7d</span></span>
+        </div>
+        <div class="pbar"><i style="width:${Math.round(c/tot*100)}%;background:${m.grad}"></i></div>
+      </div>`;
+  });
+  h+=`</div>`;
+
+  /* heatmap */
+  h+=`<div class="panel hm"><div class="hh"><div><h3>Team Happiness Heatmap</h3>
+      <p>Colleague sentiment by team. Anonymity floor of 5 applies. Click a team to focus</p></div>
+      <div class="legend"><span><i style="background:var(--purple)"></i>High</span>
+      <span><i style="background:var(--yellow)"></i>Medium</span>
+      <span><i style="background:var(--red)"></i>Low</span></div></div><div class="zones">`;
+  ZONES.forEach(z=>{
+    const s=zoneHappiness(z.id);
+    const band = s>=70?{c:'#fff',bg:'linear-gradient(135deg,#7c3aed,#a855f7)',l:'High'}
+               : s>=55?{c:'#3a2c08',bg:'linear-gradient(135deg,#eab308,#f59e0b)',l:'Medium'}
+               :        {c:'#fff',bg:'linear-gradient(135deg,#ef4444,#f43f5e)',l:'Low'};
+    h+=`<div class="zone" style="background:${band.bg};color:${band.c}" onclick="focusZone('${z.id}')">
+        <span class="pulse-dot"></span>
+        <div class="zn">${z.label}</div>
+        <div><div class="zs">${Math.round(s)}</div><div class="zc">${band.l} · ${(agg[z.id].nhappy+agg[z.id].vunhappy)} need care</div></div>
+      </div>`;
+  });
+  h+=`</div></div>`;
+
+  /* P4 - live voices: the words behind the numbers */
+  const vs=responses.filter(r=>filterZone==='all'||r.zone===filterZone)
+                    .slice().sort((a,b)=>b.t-a.t).slice(0,4);
+  if(vs.length){
+    h+=`<div class="panel voices"><h3>Live voices</h3>
+      <p class="vsub">Latest colleague comments, always anonymous unless opted in</p>`;
+    vs.forEach(r=>{
+      const m=moodOf(r.mood);
+      h+=`<div class="vrow"><span class="vdot" style="background:${m.color}"></span>
+        <div><div class="vt">“${r.text}”${r.followup&&!r.reply?'<span class="await">AWAITING REPLY</span>':''}</div>
+        <div class="vm">${zoneOf(r.zone).label} · ${r.name} · ${ago(r.t)}${r.reply?' · replied ✓':''}</div></div></div>`;
+    });
+    h+=`</div>`;
+  }
+  main.innerHTML=h;
+}
+
+function gaugeSVG(pulse,word){
+  const r=85, C=2*Math.PI*r, off=C*(1-pulse/100);
+  return `<div class="gauge">
+    <svg width="210" height="210" viewBox="0 0 210 210">
+      <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#a855f7"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs>
+      <circle cx="105" cy="105" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="14"/>
+      <circle cx="105" cy="105" r="${r}" fill="none" stroke="url(#gg)" stroke-width="14" stroke-linecap="round"
+        stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 105 105)"
+        style="transition:stroke-dashoffset .6s ease"/>
+    </svg>
+    <div class="ctr"><b>${Math.round(pulse)}</b><span>${word}</span></div>
+  </div>`;
+}
+
+/* ---------- TRENDS ---------- */
+function renderTrends(){
+  const t=TREND[filterRange]||TREND['Last 24 hours'];
+  const vals=t.vals.slice();
+  if(filterRange==='Last 24 hours') vals[vals.length-1]=Math.round(happiness(zonesActive())); // live point
+  let h=`<div class="page-head"><div><h1>Happiness Trends</h1><p>Historical sentiment analysis and patterns</p></div>
+    <div class="rangetabs">`;
+  ['Last 24 hours','Last 7 days','Last 30 days'].forEach(r=>{
+    const lbl={'Last 24 hours':'24H','Last 7 days':'7D','Last 30 days':'30D'}[r];
+    h+=`<div class="rtab ${filterRange===r?'on':''}" onclick="setRange('${r}')">${lbl}</div>`;
+  });
+  h+=`</div></div>`;
+
+  h+=`<div class="panel twrap"><h3>Overall happiness score over time</h3>${lineSVG(t.labels,vals,t.dipIdx,t.dipLabel)}</div>`;
+
+  h+=`<div class="grid2">
+      <div class="panel twrap"><h3>Mood distribution</h3>${donutSVG()}</div>
+      <div class="panel twrap week"><h3>Weekly comparison</h3>`;
+  WEEKDAYS.forEach(([d,v])=>{
+    h+=`<div class="wrow"><div class="wt"><span>${d}</span><span style="color:var(--pink);font-weight:700">${v}%</span></div>
+        <div class="wbar"><i style="width:${v}%"></i></div></div>`;
+  });
+  h+=`</div></div>`;
+  main.innerHTML=h;
+}
+
+function lineSVG(labels,vals,dipIdx,dipLabel){
+  const W=1000,H=300,pad=44,bottom=H-36,top=20;
+  const xx=i=>pad+i*((W-pad-20)/(labels.length-1));
+  const yy=v=>bottom-(v/100)*(bottom-top);
+  let pts=vals.map((v,i)=>[xx(i),yy(v)]);
+  let line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  let area=line+` L ${xx(labels.length-1)} ${bottom} L ${pad} ${bottom} Z`;
+  let grid='';
+  [0,25,50,75,100].forEach(g=>{const y=yy(g);grid+=`<line x1="${pad}" y1="${y}" x2="${W-20}" y2="${y}" stroke="rgba(255,255,255,.06)"/><text x="${pad-10}" y="${y+4}" fill="#7c6f99" font-size="11" text-anchor="end">${g}%</text>`;});
+  let xlab=labels.map((l,i)=>`<text x="${xx(i)}" y="${H-12}" fill="#7c6f99" font-size="11" text-anchor="middle">${l}</text>`).join('');
+  let dots=pts.map((p,i)=>{const col=i===dipIdx?'#eab308':(i===pts.length-1?'#ec4899':'#a855f7');
+    return `<circle cx="${p[0]}" cy="${p[1]}" r="5.5" fill="${col}" stroke="#120e1c" stroke-width="2"/>`;}).join('');
+  let annot='';
+  if(dipIdx!=null){const p=pts[dipIdx];
+    annot=`<line x1="${p[0]}" y1="${p[1]}" x2="${p[0]}" y2="${p[1]+34}" stroke="#eab308" stroke-dasharray="3 3"/>
+      <rect x="${p[0]-46}" y="${p[1]+34}" width="92" height="22" rx="6" fill="rgba(234,179,8,.15)" stroke="rgba(234,179,8,.5)"/>
+      <text class="annot" x="${p[0]}" y="${p[1]+49}" text-anchor="middle">${dipLabel}</text>`;}
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    <defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a855f7" stop-opacity=".45"/><stop offset="1" stop-color="#a855f7" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<path d="${area}" fill="url(#area)"/><path d="${line}" fill="none" stroke="#c026d3" stroke-width="3"/>
+    ${dots}${annot}${xlab}</svg>`;
+}
+
+function donutSVG(){
+  const r=70,C=2*Math.PI*r,tot=totalResponses()||1;
+  let cum=0,segs='';
+  MOODS.forEach(m=>{
+    const f=bucketCount(m.id)/tot, seg=C*f;
+    segs+=`<circle cx="100" cy="100" r="${r}" fill="none" stroke="${m.color}" stroke-width="26"
+      stroke-dasharray="${seg} ${C-seg}" stroke-dashoffset="${-cum}" transform="rotate(-90 100 100)"/>`;
+    cum+=seg;
+  });
+  let leg=MOODS.map(m=>`<div class="dl"><i style="background:${m.color}"></i>${m.label}<b>${bucketCount(m.id).toLocaleString()}</b></div>`).join('');
+  return `<div class="donut-wrap"><svg width="200" height="200" viewBox="0 0 200 200">${segs}
+    <text x="100" y="96" text-anchor="middle" fill="#fff" font-size="26" font-weight="800">${tot.toLocaleString()}</text>
+    <text x="100" y="116" text-anchor="middle" fill="#a596c4" font-size="11">Total responses</text></svg>
+    <div class="donut-legend">${leg}</div></div>`;
+}
+
+/* ---------- ALERTS ---------- */
+let resolvedAlerts={};   // zoneId -> true once actioned
+function activeAlerts(){
+  const list=[];
+  ZONES.forEach(z=>{
+    const s=zoneHappiness(z.id);
+    const resolved=!!resolvedAlerts[z.id];
+    /* P3/M2: threshold-crossing time is recorded, so duration is real */
+    if(s<70){ if(!alertSince[z.id]) alertSince[z.id]=now(); }
+    else { delete alertSince[z.id]; }
+    if(s<55) list.push({zone:z.id,sev:'crit',score:s,resolved,
+        title: z.id==='checkout'?'Customer service under severe pressure':z.label+' colleague pulse critical',
+        desc: z.id==='checkout'?`Colleague pulse down to ${Math.round(s)}% in customer service. Cover has been short most of the shift.`
+              :`Colleague pulse in ${z.label} has fallen to ${Math.round(s)}%.`,
+        impact:recentImpact[z.id], dur:durOf(z.id), icon:'⏱'});
+    else if(s<70) list.push({zone:z.id,sev:'warn',score:s,resolved,
+        title: z.label+(z.id==='electronics'?': equipment failures biting':' pulse declining'),
+        desc: z.id==='electronics'?'Spike in unhappy responses. Colleagues reporting broken kit slowing every job.'
+              :`Score in ${z.label} is trending down.`,
+        impact:recentImpact[z.id], dur:durOf(z.id), icon:'⚠️'});
+  });
+  return list.sort((a,b)=>a.score-b.score);
+}
+
+function renderAlerts(){
+  const all=activeAlerts();
+  const crit=all.filter(a=>a.sev==='crit'), warn=all.filter(a=>a.sev==='warn');
+  let h=`<div class="page-head"><div><h1>Active Alerts</h1><p>Team pressure requiring attention. Act to close the loop</p></div></div>
+    <div class="alerts-head"><span class="pill crit">${crit.filter(a=>!a.resolved).length} Critical</span>
+      <span class="pill warn">${warn.filter(a=>!a.resolved).length} Warning</span></div>`;
+
+  h+=`<div class="secti crit">Critical alerts</div>`;
+  h+= crit.length? crit.map(a=>alertCard(a)).join('') : `<div class="empty">No critical alerts 🎉</div>`;
+  h+=`<div class="secti warn">Warnings</div>`;
+  h+= warn.length? warn.map(a=>alertCard(a)).join('') : `<div class="empty">No warnings</div>`;
+  main.innerHTML=h;
+}
+function alertCard(a){
+  const contactable = responses.filter(r=>r.zone===a.zone && r.followup && !r.reply).length;
+  return `<div class="acard ${a.sev} ${a.resolved?'resolved':''}">
+    <div class="aic">${a.icon}</div>
+    <div class="ab"><b>${a.title}</b><p>${a.desc}</p>
+      <div class="meta"><span>Zone: ${zoneOf(a.zone).label}</span><span>Duration: ${a.dur}</span>
+      <span class="imp">Impact: ${a.impact} colleagues</span>${contactable?`<span>${contactable} opted in for reply</span>`:''}</div></div>
+    <div class="right"><div class="when">live</div>
+      ${a.resolved?`<button class="takebtn">✓ Loop closed</button>`
+        :`<button class="takebtn ${a.sev==='warn'?'warn':''}" onclick="takeAction('${a.zone}')">Take action</button>`}</div>
+  </div>`;
+}
+
+/* TAKE ACTION (P1): a Partner sees and shapes the reply BEFORE it goes.
+   Ten seconds of human attention is what makes this a person, not a mail-merge. */
+let composeZone=null;
+function takeAction(zoneId){openCompose(zoneId)}
+
+function openCompose(zoneId){
+  composeZone=zoneId;
+  const z=zoneOf(zoneId);
+  const contactable=responses.filter(r=>r.zone===zoneId && r.followup && !r.reply);
+  document.getElementById('cmpTitle').textContent='Take action · '+z.label;
+  document.getElementById('cmpSub').textContent='Action will be logged for '+z.label+' now. Only opted-in colleagues appear below. Anonymous voices are never contactable.'+
+    (contactable.length?' Your reply goes confidentially to each of them.':'');
+  let b='';
+  if(contactable.length){
+    b+=`<div class="who">${contactable.map(r=>`<span class="wchip"><b>${r.name}</b> · ${moodOf(r.mood).label}</span>`).join('')}</div>`;
+    b+=`<textarea id="cmpMsg">Hello {name}, I'm ${PARTNER.name.split(' ')[0]} from the Springfield team . Thank you for speaking up about ${z.label.toLowerCase()}. Here is what I am doing about it today, and I will follow up with you personally.</textarea>
+      <div class="note">{name} is replaced per colleague. Edit freely; this is a person writing, not a template firing.</div>`;
+  } else {
+    b+=`<div class="note" style="font-size:12.5px">No colleagues in ${z.label} are awaiting a personal reply. This action logs the action only.</div>`;
+  }
+  document.getElementById('cmpBody').innerHTML=b;
+  document.getElementById('cmpFoot').innerHTML=
+    `<button class="cbtn x" onclick="closeCompose()">Cancel</button>`+
+    `<button class="cbtn go" onclick="executeAction()">${contactable.length?'Send & respond: '+contactable.length+' colleague'+(contactable.length===1?'':'s'):'Dispatch Partners'}</button>`;
+  document.getElementById('cmp').classList.add('show');
+  document.getElementById('cmpScrim').classList.add('show');
+}
+function closeCompose(){
+  document.getElementById('cmp').classList.remove('show');
+  document.getElementById('cmpScrim').classList.remove('show');
+}
+function executeAction(){
+  const zoneId=composeZone; const z=zoneOf(zoneId);
+  const box=document.getElementById('cmpMsg');
+  const template=(box&&box.value.trim())||`Hello {name}, thank you for speaking up about ${z.label.toLowerCase()}. We are acting on it now.`;
+  const contactable=responses.filter(r=>r.zone===zoneId && r.followup && !r.reply);
+  contactable.forEach(r=>{
+    r.partner=PARTNER.init;
+    r.reply=template.replace(/\{name\}/g, r.name==='You'?'there':r.name);
+    r.status='closed';
+  });
+  // operational recovery: nudge the zone up a little (Partners dispatched)
+  agg[zoneId].vhappy += 24; agg[zoneId].happy += 18;
+  agg[zoneId].nhappy = Math.max(0, agg[zoneId].nhappy-30);
+  agg[zoneId].vunhappy = Math.max(0, agg[zoneId].vunhappy-40);
+  recentImpact[zoneId]=Math.max(0,recentImpact[zoneId]-contactable.length);
+  resolvedAlerts[zoneId]=true;
+  delete alertSince[zoneId];   /* action taken - if the zone dips again, the clock restarts */
+  closeCompose();
+  // reflect on the colleague phone if their feedback was just answered
+  if(appState.myId && contactable.some(r=>r.id===appState.myId)) renderDrawer();
+  render();
+  toast('green', `Partner dispatched to ${z.label} · ${contactable.length} confidential repl${contactable.length===1?'y':'ies'} sent, loop closing`);
+}
+
+/* =====================================================================
+   FILTERS / NAV
+   ===================================================================== */
+function buildZchips(){
+  const el=document.getElementById('zchips');
+  el.innerHTML=`<span class="zchip ${filterZone==='all'?'on':''}" onclick="setZone('all')">All</span>`+
+    ZONES.map(z=>`<span class="zchip ${filterZone===z.id?'on':''}" onclick="setZone('${z.id}')">${z.label}</span>`).join('');
+}
+function setZone(z){filterZone=z;buildZchips();render()}
+function focusZone(z){filterZone=z;buildZchips();render();toast('purple','Focused on '+zoneOf(z).label)}
+function setRange(r){filterRange=r;document.getElementById('fDate').value=r;render()}
+document.getElementById('fDate').addEventListener('change',e=>{filterRange=e.target.value;render()});
+document.getElementById('nav').addEventListener('click',e=>{
+  const a=e.target.closest('a'); if(!a)return;
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('on'));
+  a.classList.add('on'); view=a.dataset.view; render();
+});
+
+/* =====================================================================
+   CUSTOMER CAPTURE DRAWER
+   ===================================================================== */
+let appState={step:'pick',zone:null,mood:null,reasons:[],text:'',followup:false,myId:null};
+const drawer=document.getElementById('drawer'), scrim=document.getElementById('scrim'), drBody=document.getElementById('drBody');
+function openDrawer(){drawer.classList.add('show');scrim.classList.add('show');renderDrawer()}
+function closeDrawer(){drawer.classList.remove('show');scrim.classList.remove('show')}
+
+function renderDrawer(){
+  const s=appState; let h='';
+  const my=s.myId?responses.find(r=>r.id===s.myId):null;
+
+  if(s.step==='pick'||s.step==='rate'){
+    h+=`<div class="dlab">Which team are you on?</div><div class="zopts">`;
+    ZONES.forEach(z=>h+=`<div class="zopt ${s.zone===z.id?'sel':''}" onclick="dPick('${z.id}')">${z.label}</div>`);
+    h+=`</div>`;
+    if(s.zone){
+      h+=`<div class="dlab">How are you feeling right now?</div><div class="moods">`;
+      MOODS.forEach(m=>h+=`<div class="mood ${s.mood===m.id?'sel':''}" style="${s.mood===m.id?`border-color:${m.color}`:''}" onclick="dMood('${m.id}')">
+        <span class="me">${m.emoji}</span><span class="ml">${m.label}</span></div>`);
+      h+=`</div>`;
+    }
+    if(s.mood){
+      const pos = (s.mood==='vhappy'||s.mood==='happy');
+      h+=`<div class="dlab">${pos?'What went well?':'What let us down?'}</div><div class="rchips">`;
+      (pos?REASONS.pos:REASONS.neg).forEach(r=>h+=`<div class="rchip ${s.reasons.includes(r)?'sel':''}" onclick="dReason('${r}')">${r}</div>`);
+      h+=`</div>`;
+      h+=`<div class="dlab">Anything to add?</div><textarea id="dText" placeholder="In your own words…" oninput="appState.text=this.value">${s.text}</textarea>`;
+      h+=`<div class="dfollow"><div class="tgl ${s.followup?'on':''}" onclick="dFollow()"></div>
+          <div class="t"><b>I want a confidential reply</b>Otherwise this stays fully anonymous.</div></div>`;
+      h+=`<button class="dbtn" onclick="dSubmit()">Send it</button>`;
+    }
+  }
+  else if(s.step==='sent'){
+    const r=responses.find(x=>x.id===s.myId);
+    h+=`<div class="dcenter"><div class="dtick">✓</div><h3>Thank you</h3>
+      <p>${r.followup?'Your leader will reply to you confidentially.':'Received, completely anonymously.'}</p></div>`;
+    if(r.reply){ h+=replyBlock(r); }
+    else {
+      h+=`<div class="dreply" style="border-color:#e3e1d8;background:#fafaf7">
+        <div class="msg" style="color:#6b7269">Your ${moodOf(r.mood).label.toLowerCase()} rating for <b>${zoneOf(r.zone).label}</b> just moved the live team pulse. Watch the dashboard behind this panel.</div></div>`;
+    }
+    h+=`<button class="dbtn ghost" onclick="dReset()">Leave more feedback</button>`;
+  }
+  drBody.innerHTML=h;
+}
+function replyBlock(r){
+  return `<div class="dreply"><div class="from"><div class="pp">${PARTNER.init}</div>
+    <div><b>${PARTNER.name}</b><small>Team Leader · confidential</small></div></div>
+    <div class="msg">${r.reply}</div></div>`;
+}
+function dPick(z){appState.zone=z;renderDrawer()}
+function dMood(m){appState.mood=m;appState.reasons=[];renderDrawer()}
+function dReason(r){const a=appState.reasons;a.includes(r)?a.splice(a.indexOf(r),1):a.push(r);renderDrawer()}
+function dFollow(){appState.followup=!appState.followup;renderDrawer()}
+function dSubmit(){
+  const s=appState;
+  const item={id:++uid,zone:s.zone,mood:s.mood,text:s.text.trim()||'(no comment)',tags:[...s.reasons],
+    t:now(),name:'You',followup:s.followup,status:(s.mood==='vunhappy'||s.mood==='nhappy')?'open':'closed'};
+  responses.unshift(item);
+  agg[s.zone][s.mood]++;
+  if(s.mood==='vunhappy'||s.mood==='nhappy'){ recentImpact[s.zone]++; if(resolvedAlerts[s.zone])delete resolvedAlerts[s.zone]; }
+  s.myId=item.id; s.step='sent';
+  renderDrawer(); render();
+  const m=moodOf(s.mood);
+  toast(s.mood==='vunhappy'?'red':s.mood==='nhappy'?'yellow':'green',
+        `New check-in: ${zoneOf(s.zone).label} · ${m.label} · dashboard updated`);
+}
+function dReset(){appState={step:'pick',zone:null,mood:null,reasons:[],text:'',followup:false,myId:null};renderDrawer()}
+
+/* =====================================================================
+   EXPORTS + TOAST
+   ===================================================================== */
+function exportCSV(){
+  let rows=[['Zone','Mood','Happiness value','Comment','Follow-up','Status','When']];
+  responses.forEach(r=>rows.push([zoneOf(r.zone).label,moodOf(r.mood).label,moodOf(r.mood).val,
+    '"'+r.text.replace(/"/g,'""')+'"',r.followup?'Yes':'No',r.status,new Date(r.t).toISOString()]));
+  ZONES.forEach(z=>MOODS.forEach(m=>rows.push([zoneOf(z.id).label,moodOf(m.id).label,'(aggregate count)',agg[z.id][m.id],'','',''])));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='moodloop-export.csv'; a.click(); URL.revokeObjectURL(url);
+  toast('purple','CSV exported');
+}
+function exportPDF(){toast('purple','Opening print view…');setTimeout(()=>window.print(),300)}
+
+let tT;
+function toast(color,msg){
+  const c={green:'var(--green)',red:'var(--red)',yellow:'var(--yellow)',purple:'var(--purple)'}[color]||'var(--purple)';
+  const el=document.getElementById('toast');
+  el.innerHTML=`<span class="td" style="background:${c}"></span> ${msg}`;
+  el.classList.add('show'); clearTimeout(tT); tT=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+/* init */
+buildZchips();
+render();
+</script>
+
+<script>
+/* ---- guided tour (site edition; skippable) ---- */
+(function(){
+  var STEPS=["This is what <b>site leadership</b> sees: a live staff pulse, mood counts and a team heatmap, all computed from colleague check-ins. Themes and scores, never names.", "Scroll to <b>Live voices</b>: colleagues' actual words, anonymous unless they opted in. Reading the words is what turns a score into understanding.", "Open <b>Alerts</b> in the sidebar. Each card carries a real <b>duration</b> and the number of <b>colleagues affected</b>, so people pressure is visible while it can still be fixed, not in next quarter's survey.", "Hit <b>Take action</b> on an alert. Note the safeguard: only colleagues who opted in appear, anonymous voices are never contactable, and the message is yours to shape before it goes. Then try the <b>\ud83d\udcf1 Staff check-in</b> button to be the colleague and watch everything move."];
+  var i=0;
+  var css=document.createElement('style');
+  css.textContent='#ltour{position:fixed;bottom:22px;left:22px;z-index:500;width:330px;max-width:88vw;'+
+    'background:#153627;color:#F3F0E7;border:1px solid #2F5A48;border-radius:16px;'+
+    'box-shadow:0 18px 50px rgba(0,0,0,.35);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;'+
+    'transform:translateY(12px);opacity:0;transition:.35s;pointer-events:none}'+
+    '#ltour.show{transform:none;opacity:1;pointer-events:auto}'+
+    '#ltour .th{display:flex;align-items:center;gap:9px;padding:13px 16px 10px;font-size:11px;font-weight:700;'+
+    'letter-spacing:.12em;text-transform:uppercase;color:#C9A84C}'+
+    '#ltour .th .cnt{margin-left:auto;font-weight:600;letter-spacing:0;opacity:.7}'+
+    '#ltour .tb{padding:0 16px 12px;font-size:13px;line-height:1.55}'+
+    '#ltour .tb b{color:#C9A84C}'+
+    '#ltour .tf{display:flex;gap:8px;padding:0 16px 15px;align-items:center}'+
+    '#ltour button{border:none;border-radius:9px;padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}'+
+    '#ltour .nxt{background:#C9A84C;color:#fff}'+
+    '#ltour .bck{background:transparent;color:inherit;border:1px solid #2F5A48;opacity:.8}'+
+    '#ltour .skp{margin-left:auto;background:none;border:none;font-size:11.5px;opacity:.6;text-decoration:underline;cursor:pointer;color:inherit}'+
+    '#ltRestart{position:fixed;bottom:22px;left:22px;z-index:499;border:none;border-radius:999px;padding:9px 15px;'+
+    'font-size:11.5px;font-weight:700;cursor:pointer;background:#C9A84C;color:#fff;opacity:.9;display:none;'+
+    'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3)}';
+  document.head.appendChild(css);
+  var el=document.createElement('div'); el.id='ltour';
+  el.innerHTML='<div class="th">&#9654; Guided tour <span class="cnt"></span></div><div class="tb"></div>'+
+    '<div class="tf"><button class="bck">Back</button><button class="nxt">Next</button><button class="skp">Skip tour</button></div>';
+  document.body.appendChild(el);
+  var rb=document.createElement('button'); rb.id='ltRestart'; rb.innerHTML='&#9654; Tour';
+  document.body.appendChild(rb);
+  function paint(){
+    el.querySelector('.cnt').textContent=(i+1)+' / '+STEPS.length;
+    el.querySelector('.tb').innerHTML=STEPS[i];
+    el.querySelector('.bck').style.visibility=i?'visible':'hidden';
+    el.querySelector('.nxt').textContent=(i===STEPS.length-1)?'Finish':'Next';
+  }
+  function hide(){el.classList.remove('show');rb.style.display='block'}
+  function show(){i=0;paint();el.classList.add('show');rb.style.display='none'}
+  el.querySelector('.nxt').addEventListener('click',function(){ if(i===STEPS.length-1){hide();return} i++;paint(); });
+  el.querySelector('.bck').addEventListener('click',function(){ if(i>0){i--;paint();} });
+  el.querySelector('.skp').addEventListener('click',hide);
+  rb.addEventListener('click',show);
+  setTimeout(show,900);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodLoop Staff · Colleague App &amp; Team Leader Workbench (concept)</title>
+<style>
+  :root{
+    --green:#0f3d2e;
+    --green2:#2c6b4f;
+    --green-soft:#e7f0ea;
+    --ink:#1c1d1a;
+    --muted:#6b7269;
+    --line:#e3e1d8;
+    --paper:#f6f4ee;
+    --card:#ffffff;
+    --gold:#b08842;
+    --pos:#2c6b4f;
+    --mid:#c79320;
+    --neg:#b0442f;
+    --anon:#3b5f8a;
+    --anon-soft:#e8eef6;
+    --shadow:0 8px 30px rgba(20,30,24,.10);
+    --radius:16px;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif:Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);
+    background:radial-gradient(1200px 600px at 80% -10%, #16493718, transparent),var(--paper);
+    -webkit-font-smoothing:antialiased;line-height:1.45}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 26px;
+    border-bottom:1px solid var(--line);background:rgba(255,255,255,.7);backdrop-filter:blur(8px);
+    position:sticky;top:0;z-index:50}
+  .brand{display:flex;align-items:center;gap:14px}
+  .smk{width:44px;height:44px;border-radius:10px;background:#fff;box-shadow:var(--shadow);padding:8px}
+  .smk svg{width:100%;height:100%;display:block}
+  .brand h1{font-size:17px;margin:0;letter-spacing:.2px}
+  .brand h1 b{color:var(--green)}
+  .brand .sub{font-size:12px;color:var(--muted);margin-top:1px}
+  .tag{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:5px 10px;border-radius:999px;background:#fff}
+
+  .stage{display:grid;grid-template-columns:400px 1fr;gap:30px;max-width:1360px;margin:0 auto;
+    padding:30px 26px 70px;align-items:start}
+  @media (max-width:1000px){.stage{grid-template-columns:1fr}}
+  .panel-label{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 12px 4px;display:flex;align-items:center;gap:8px}
+  .panel-label .dot{width:8px;height:8px;border-radius:50%;background:var(--green2)}
+
+  /* ---------- NFC simulator ---------- */
+  .simbar{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .simbar .st{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+  .devchips{display:flex;flex-wrap:wrap;gap:6px}
+  .dev{font-size:11.5px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;
+    cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px}
+  .dev:hover{border-color:var(--green2)}
+  .dev.here{background:var(--green);color:#fff;border-color:var(--green);font-weight:600}
+  .dev .nfc{font-size:10px}
+
+  /* ---------- phone ---------- */
+  .phone-wrap{position:sticky;top:90px}
+  .phone{width:360px;max-width:100%;height:720px;margin:0 auto;background:var(--card);border-radius:38px;
+    box-shadow:var(--shadow);border:10px solid #14201a;overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .phone .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:130px;height:24px;
+    background:#14201a;border-radius:0 0 16px 16px;z-index:6}
+  .screen{flex:1;overflow-y:auto;position:relative}
+  .screen::-webkit-scrollbar{width:0}
+
+  .app-head{background:var(--green);color:#fff;padding:30px 22px 16px;position:relative}
+  .app-head h2{margin:6px 0 2px;font-size:20px;font-weight:600}
+  .app-head p{margin:0;font-size:12.5px;opacity:.8}
+  .loc-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border-radius:999px;
+    padding:5px 11px;font-size:11.5px;margin-top:10px}
+  .loc-pill i{width:7px;height:7px;border-radius:50%;background:var(--gold)}
+  .bell{position:absolute;right:18px;top:30px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.14);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+  .bell .badge{position:absolute;top:-3px;right:-3px;background:var(--gold);color:#fff;font-size:10px;min-width:16px;
+    height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px;font-weight:700}
+  .bell.has .badge{display:flex}
+
+  .app-body{padding:16px 20px 30px}
+  .step-q{font-size:17px;font-weight:600;margin:4px 0 14px}
+
+  /* anonymity banner */
+  .anon-banner{display:flex;gap:10px;align-items:flex-start;background:var(--anon-soft);border:1px solid #c9d7ea;
+    border-radius:12px;padding:11px 13px;margin-bottom:14px}
+  .anon-banner .ai{font-size:16px;flex:0 0 auto;margin-top:1px}
+  .anon-banner .at{font-size:11.5px;color:#2c4a70;line-height:1.45}
+  .anon-banner .at b{display:block;font-size:12px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 13px;font-size:13px;
+    cursor:pointer;display:flex;align-items:center;gap:8px;transition:.15s;flex:1 1 calc(50% - 9px)}
+  .chip:hover{border-color:var(--green2)}
+  .chip.sel{border-color:var(--green);background:var(--green-soft);font-weight:600}
+
+  .qmood{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:14px}
+  .qmood .ql{font-size:12px;font-weight:600;margin-bottom:9px}
+  .qmood .ql small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:1px}
+  .qrow{display:flex;gap:8px}
+  .qm{flex:1;border:1px solid var(--line);border-radius:11px;background:#fafaf7;padding:9px 4px;text-align:center;
+    font-size:22px;cursor:pointer;transition:.15s;line-height:1}
+  .qm:hover{transform:translateY(-2px);border-color:var(--green2)}
+  .qthanks{font-size:12px;color:var(--green2);font-weight:600}
+
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tile{border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px 13px;cursor:pointer;transition:.15s}
+  .tile:hover{border-color:var(--green2);transform:translateY(-2px)}
+  .tile .ti{font-size:21px;margin-bottom:8px}
+  .tile b{display:block;font-size:13px}
+  .tile small{font-size:11px;color:var(--muted);line-height:1.35;display:block;margin-top:2px}
+  .tile.hero{grid-column:1/-1;background:var(--green-soft);border-color:var(--green2)}
+
+  .lrow{display:flex;align-items:flex-start;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
+  .lrow:last-child{border-bottom:none}
+  .lrow .li{width:34px;height:34px;border-radius:10px;background:var(--green-soft);color:var(--green);
+    display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto}
+  .lrow b{font-size:13px;display:block}
+  .lrow small{font-size:11.5px;color:var(--muted);display:block;margin-top:1px;line-height:1.4}
+  .wewall{background:var(--green-soft);border:1px solid var(--green2);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+  .wewall .ws{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--green2);text-transform:uppercase}
+  .wewall .wy{font-size:12.5px;font-style:italic;color:#41504a;margin:5px 0 6px}
+  .wewall .wd{font-size:12.5px;color:var(--ink)}
+  .wewall .wm{font-size:10.5px;color:var(--muted);margin-top:6px}
+
+  .scale{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+  .sc{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;display:flex;
+    align-items:center;justify-content:center;font-weight:600;cursor:pointer;font-size:14px;transition:.12s}
+  .sc:hover{transform:translateY(-2px)}
+  .sc.sel{color:#fff;transform:translateY(-2px)}
+  .scale-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
+
+  textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;
+    font-size:13.5px;background:#fff}
+  textarea{resize:none;min-height:84px}
+  textarea:focus,input[type=text]:focus{outline:none;border-color:var(--green2)}
+
+  .optin{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px;border:1px solid #c9d7ea;
+    border-radius:12px;background:var(--anon-soft)}
+  .toggle{width:42px;height:24px;border-radius:999px;background:#d9d7cd;position:relative;cursor:pointer;flex:0 0 auto;transition:.2s}
+  .toggle.on{background:var(--anon)}
+  .toggle::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}
+  .toggle.on::after{left:21px}
+  .optin .txt{font-size:12px;color:#2c4a70}
+  .optin .txt b{display:block;font-size:12.5px}
+
+  .btn{width:100%;border:none;border-radius:12px;padding:14px;font-size:14.5px;font-weight:600;background:var(--green);
+    color:#fff;cursor:pointer;margin-top:16px;transition:.15s;font-family:inherit}
+  .btn:hover{background:#0b2e22}
+  .btn:disabled{background:#bcc2bb;cursor:not-allowed}
+  .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
+  .back{font-size:13px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-bottom:14px}
+  .ctx-pill{display:inline-flex;align-items:center;gap:7px;background:var(--green-soft);color:var(--green);
+    border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;margin-bottom:14px}
+
+  .center-state{padding:34px 22px;text-align:center}
+  .tick{width:74px;height:74px;border-radius:50%;background:var(--green-soft);color:var(--green);display:flex;
+    align-items:center;justify-content:center;font-size:34px;margin:0 auto 18px}
+  .center-state h3{margin:0 0 8px;font-size:19px}
+  .center-state p{margin:0 auto;font-size:13.5px;color:var(--muted);max-width:260px}
+
+  .reply-card{margin-top:20px;border:1px solid var(--anon);border-radius:14px;background:var(--anon-soft);padding:16px;text-align:left}
+  .reply-card .from{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .reply-card .pp{width:36px;height:36px;border-radius:50%;background:var(--anon);color:#fff;display:flex;
+    align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .reply-card .from b{font-size:13.5px}
+  .reply-card .from small{display:block;color:var(--muted);font-size:11.5px}
+  .reply-card .msg{font-size:13.5px;line-height:1.5}
+
+  /* ---------- workbench ---------- */
+  .dash{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .dash-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+  .dash-head h2{margin:0;font-size:16px}
+  .dash-head .who{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted)}
+  .dash-head .who .pp{width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;display:flex;
+    align-items:center;justify-content:center;font-weight:700;font-size:12px}
+  .live-dot{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--green2);font-weight:600}
+  .live-dot i{width:8px;height:8px;border-radius:50%;background:var(--green2);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(44,107,79,.5)}70%{box-shadow:0 0 0 7px rgba(44,107,79,0)}100%{box-shadow:0 0 0 0 rgba(44,107,79,0)}}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr)}
+  .kpi{padding:18px 20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .kpi:nth-child(4){border-right:none}
+  .kpi .lab{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .kpi .val{font-size:30px;font-weight:700;margin-top:4px;font-family:var(--serif)}
+  .kpi .delta{font-size:11.5px;color:var(--muted)}
+
+  .floor-note{display:flex;gap:9px;align-items:center;background:var(--anon-soft);border-bottom:1px solid var(--line);
+    padding:10px 22px;font-size:11.5px;color:#2c4a70}
+  .floor-note b{font-weight:700}
+
+  .dash-body{display:grid;grid-template-columns:1.25fr 1fr}
+  @media (max-width:1180px){.dash-body{grid-template-columns:1fr}}
+  .col{padding:18px 20px}
+  .col.left{border-right:1px solid var(--line)}
+  @media (max-width:1180px){.col.left{border-right:none;border-bottom:1px solid var(--line)}}
+  .col h3{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 14px}
+  .col h3.mt{margin-top:22px}
+
+  /* team tiles with anonymity floor */
+  .teams{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:18px}
+  .tt{border:1px solid var(--line);border-radius:11px;padding:10px 11px;background:#fff}
+  .tt .tn{font-size:11px;font-weight:700;color:var(--ink)}
+  .tt .ts{font-size:21px;font-weight:700;font-family:var(--serif);margin-top:2px}
+  .tt .tc{font-size:10px;color:var(--muted)}
+  .tt.locked{background:#fafaf7;text-align:left}
+  .tt.locked .ts{font-size:14px;color:var(--muted);font-family:var(--sans);font-weight:600;margin-top:4px}
+
+  .feed{display:flex;flex-direction:column;gap:11px;max-height:520px;overflow-y:auto;padding-right:4px}
+  .fcard{border:1px solid var(--line);border-radius:12px;padding:13px 14px;cursor:pointer;transition:.15s;background:#fff;position:relative}
+  .fcard:hover{border-color:var(--green2);box-shadow:0 4px 14px rgba(20,30,24,.07)}
+  .fcard.sel{border-color:var(--green);box-shadow:0 0 0 2px var(--green-soft)}
+  .fcard.new{animation:flashin 1.4s ease}
+  @keyframes flashin{0%{background:#fff7e2;transform:translateY(-6px);opacity:.3}100%{background:#fff;transform:none;opacity:1}}
+  .fc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+  .cat-bub{min-width:34px;height:34px;border-radius:9px;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:15px;padding:0 8px}
+  .fc-meta{font-size:11.5px;color:var(--muted)}
+  .fc-touch{font-size:12px;font-weight:600}
+  .fc-text{font-size:12.8px;color:#33372f;margin:2px 0 0}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .tg{font-size:10.5px;background:#f1efe6;color:#5d6358;border-radius:6px;padding:3px 7px}
+  .tg.wait{background:#fbe9e4;color:var(--neg);font-weight:700}
+  .tg.anon{background:var(--anon-soft);color:var(--anon);font-weight:700}
+  .tg.optin{background:#fff4dc;color:var(--gold);font-weight:700}
+  .status-tag{font-size:10.5px;border-radius:6px;padding:3px 7px;font-weight:600}
+  .st-open{background:#fff4dc;color:var(--gold)}
+  .st-closed{background:#eef0ec;color:var(--muted)}
+
+  .theme{margin-bottom:13px}
+  .theme .th2{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+  .theme .th2 b{font-weight:600}
+  .bar{height:8px;border-radius:4px;background:#eee;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:4px}
+
+  .recog{background:#fffdf6;border:1px solid #e6dcbf;border-radius:11px;padding:10px 12px;margin-bottom:9px}
+  .recog b{font-size:12.5px;color:var(--gold)}
+  .recog p{margin:3px 0 0;font-size:12px;color:var(--ink)}
+
+  .detail{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  .detail .dh{padding:14px 16px;background:#fafaf7;border-bottom:1px solid var(--line)}
+  .detail .db{padding:15px 16px}
+  .detail .quote{font-size:13.5px;font-style:italic;color:#33372f;border-left:3px solid var(--green2);padding-left:12px;margin:0 0 14px}
+  .field-lab{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 7px}
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:40px 16px;border:1px dashed var(--line);border-radius:12px}
+  .mode-tabs{display:flex;gap:8px;margin-bottom:10px}
+  .mtab{flex:1;border:1px solid var(--line);border-radius:9px;background:#fff;padding:8px;font-size:11.5px;font-weight:600;
+    cursor:pointer;text-align:center;color:var(--muted);font-family:inherit}
+  .mtab.on{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+  .mtab:disabled{opacity:.4;cursor:not-allowed}
+
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+    padding:13px 20px;border-radius:12px;font-size:13.5px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.3s;z-index:99}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .hint{font-size:12px;color:var(--muted);background:#fffdf6;border:1px dashed #e6dcbf;border-radius:10px;padding:10px 13px;margin-bottom:16px;line-height:1.5}
+  .hint b{color:var(--gold)}
+  .footer-note{max-width:1360px;margin:0 auto;padding:0 26px 50px;color:var(--muted);font-size:12px;line-height:1.6}
+  .footer-note b{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="smk"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="#38128A"><rect x="33" y="2" width="34" height="96" rx="17" transform="rotate(-30 50 50)"/><polygon points="54.7,0 100,0 100,55 86.4,55"/><polygon points="0,45 13.6,45 45.35,100 0,100"/></g></svg></div>
+    <div>
+      <h1><b>MoodLoop Staff</b> &nbsp;·&nbsp; Colleague voice, closed loop</h1>
+      <div class="sub">Internal feedback edition · concept prototype</div>
+    </div>
+  </div>
+  <div class="tag">Live demo · in-memory data · anonymous by default</div>
+</div>
+
+<div class="stage">
+
+  <!-- ================= COLLEAGUE PHONE ================= -->
+  <div>
+    <p class="panel-label"><span class="dot"></span> Colleague phone</p>
+
+    <div class="simbar">
+      <div class="st">⬤ Loop devices in staff areas · tap to simulate NFC</div>
+      <div class="devchips" id="simDevices"></div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen" id="screen"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TEAM LEADER WORKBENCH ================= -->
+  <div>
+    <p class="panel-label"><span class="dot"></span> Team leader workbench</p>
+
+    <div class="hint">
+      <b>Try the staff loop:</b> tap <b>Staff entrance</b> and give a quick mood → raise an issue from the
+      <b>Operations</b> device (leave the contact toggle off and note it arrives anonymous) → respond here with a
+      <b>team reply</b> and watch it land on the You said / we did wall → then tap <b>Staff exit</b> for the
+      end-of-shift check-out. Note the Office team tile: below the anonymity floor, so no score is shown.
+    </div>
+
+    <div class="dash">
+      <div class="dash-head">
+        <div>
+          <h2>MoodLoop Staff · This site</h2>
+          <div class="live-dot"><i></i> Live · themes not names</div>
+        </div>
+        <div class="who"><span class="pp">DK</span><div>Dana K.<br><span style="font-size:11px">Team Leader</span></div></div>
+      </div>
+
+      <div class="floor-note">🔒 <span><b>Anonymity floor:</b> scores and themes only display for groups with <b>5 or more</b> responses. Individual responses are never attributed unless a colleague opts in.</span></div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="lab">Team pulse</div><div class="val" id="kpiPulse">—</div><div class="delta">today, all areas</div></div>
+        <div class="kpi"><div class="lab">Responses</div><div class="val" id="kpiCount">0</div><div class="delta">today</div></div>
+        <div class="kpi"><div class="lab">Open issues</div><div class="val" id="kpiOpen" style="color:var(--neg)">0</div><div class="delta">incl. confidential requests</div></div>
+        <div class="kpi"><div class="lab">Recognitions</div><div class="val" id="kpiRecog" style="color:var(--gold)">0</div><div class="delta">colleague shout-outs</div></div>
+      </div>
+
+      <div class="dash-body">
+        <div class="col left">
+          <h3>Area pulse · today</h3>
+          <div class="teams" id="teams"></div>
+          <h3>Issues &amp; requests · urgency first</h3>
+          <div class="feed" id="feed"></div>
+        </div>
+        <div class="col right">
+          <h3>Shift themes this week</h3>
+          <div id="themes"></div>
+          <h3 class="mt">Recognition</h3>
+          <div id="recogs"></div>
+          <h3 class="mt">Selected item</h3>
+          <div id="detail"><div class="empty">Select an issue or request to respond.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-note">
+  <b>What MoodLoop Staff demonstrates.</b> The same closed loop as the customer edition, redesigned for colleagues:
+  anonymous by default with an enforced anonymity floor, quick shift pulses at staff-area Loop devices, issue raising,
+  colleague recognition and an ideas channel. The loop closes to the team through the You said / we did wall, and to
+  an individual only when they opt in to a confidential reply. Data is in-memory and resets on refresh.
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   SHARED STATE
+   ============================================================ */
+const LEADER={name:'Dana K.',init:'DK'};
+const FLOOR=5;   /* anonymity floor: no stats below this group size */
+
+const DEVICES=[
+  {id:'d1',zone:'Staff entrance',kind:'entry',ic:'🚪'},
+  {id:'d2',zone:'Break room',kind:'area',ic:'☕'},
+  {id:'d3',zone:'Canteen',kind:'area',ic:'🍽️'},
+  {id:'d4',zone:'Front of house',kind:'area',ic:'🙋'},
+  {id:'d5',zone:'Operations',kind:'area',ic:'⚙️'},
+  {id:'d6',zone:'Logistics',kind:'area',ic:'🚚'},
+  {id:'d7',zone:'Office',kind:'area',ic:'💼'},
+  {id:'d8',zone:'Staff exit',kind:'exit',ic:'👋'}
+];
+const TEAMS=['Front of house','Operations','Logistics','Canteen','Office'];
+const ISSUE_CATS=['Safety','Equipment','Workload','Rota','Environment','Other'];
+const SHIFT_REASONS={
+  high:['Great team spirit','Well staffed','Good kit','Felt supported'],
+  low:['Understaffed','Equipment problems','Workload too high','Rota issues','Felt unsupported']
+};
+const QUICKMOODS=[
+  {e:'😄',v:100,l:'Great'},
+  {e:'🙂',v:80,l:'Good'},
+  {e:'😕',v:45,l:'Not great'},
+  {e:'😞',v:15,l:'Rough'}
+];
+const CAT_ICON={Safety:'⚠️',Equipment:'🔧',Workload:'📈',Rota:'📅',Environment:'🌡️',Other:'💬',Support:'🤝'};
+
+let uid=100;
+function now(){return Date.now()}
+function mins(m){return now()-m*60000}
+
+/* moods[team] = array of pulse values (quick taps + shift scores mapped to 0-100) */
+let moods={
+  'Front of house':[80,100,80,45,80,100,80],
+  'Operations':[45,15,45,80,45,15],
+  'Logistics':[80,80,45,100,80],
+  'Canteen':[100,80,80,100,80,100],
+  'Office':[80,45,100]              /* 3 responses: below the floor on purpose */
+};
+
+/* issues, confidential requests, ideas */
+let store=[
+  {id:++uid,type:'issue',cat:'Equipment',area:'Operations',text:'Two of our key machines are out of action again. Third time this month.',t:mins(38),status:'open',optin:false},
+  {id:++uid,type:'issue',cat:'Workload',area:'Front of house',text:'Two absences not covered today. We cannot run a full service this short-handed.',t:mins(95),status:'open',optin:true,name:'Sam'},
+  {id:++uid,type:'issue',cat:'Environment',area:'Logistics',text:'Heating still broken in our section. It was 4 degrees at 6am.',t:mins(160),status:'open',optin:false},
+  {id:++uid,type:'support',cat:'Support',area:'Confidential',text:'Would like a private word about some pressure at home affecting shifts.',t:mins(20),status:'open',optin:true,name:'Alex'},
+  {id:++uid,type:'issue',cat:'Rota',area:'Canteen',text:'Rota published late again, hard to plan childcare.',t:mins(300),status:'closed',reply:'You said rotas were landing too late. From next week they publish 3 weeks ahead. Thanks for flagging.',replyAt:mins(250),optin:false}
+];
+let recogs=[
+  {id:++uid,to:'Priya (Canteen)',text:'Covered my break without being asked when we got busy. Star.',t:mins(60)},
+  {id:++uid,to:'Marcus (Logistics)',text:'Trained two new starters this week and still hit every deadline.',t:mins(200)}
+];
+let ideas=[
+  {id:++uid,text:'Rotate who runs the morning huddle. Fresh voices, better energy.',t:mins(400)}
+];
+/* You said / we did wall (visible to all staff phones) */
+let wall=[
+  {you:'Rotas were landing too late to plan around.',we:'Rotas now publish three weeks ahead, starting Monday.',t:mins(250),by:'Dana K.'},
+  {you:'The break room kettle situation. Enough said.',we:'Two new kettles and a water cooler arrive Thursday.',t:mins(2000),by:'Dana K.'}
+];
+
+/* ============================================================
+   METRICS
+   ============================================================ */
+function teamPulse(team){
+  const a=moods[team]||[];
+  if(!a.length)return null;
+  return a.reduce((s,v)=>s+v,0)/a.length;
+}
+function overallPulse(){
+  let s=0,n=0;
+  TEAMS.forEach(t=>{const a=moods[t]||[];a.forEach(v=>{s+=v;n++})});
+  return n?Math.round(s/n):null;
+}
+function totalResponses(){return TEAMS.reduce((s,t)=>s+(moods[t]||[]).length,0)}
+function ago(t){const m=Math.round((now()-t)/60000);if(m<1)return'just now';if(m<60)return m+'m ago';return Math.round(m/60)+'h ago'}
+function waitMins(t){return Math.round((now()-t)/60000)}
+function pulseColor(v){return v>=70?'var(--pos)':v>=50?'var(--mid)':'var(--neg)'}
+
+/* ============================================================
+   NFC SIMULATOR
+   ============================================================ */
+let loc=null;
+function deviceOf(id){return DEVICES.find(d=>d.id===id)}
+function renderSim(){
+  document.getElementById('simDevices').innerHTML=DEVICES.map(d=>
+    `<span class="dev ${loc&&loc.id===d.id?'here':''}" onclick="tapDevice('${d.id}')"><span class="nfc">⬤</span>${d.ic} ${d.zone}</span>`).join('');
+}
+function tapDevice(id){
+  const d=deviceOf(id);
+  loc=d;renderSim();
+  if(d.kind==='exit'){startCheckout();toast('End of shift. One last tap before you go');}
+  else{appState.step='home';toast('Tapped in at '+d.zone);}
+  renderApp();
+}
+
+/* ============================================================
+   COLLEAGUE APP
+   ============================================================ */
+const screenEl=document.getElementById('screen');
+let appState={step:'welcome',score:null,reasons:[],text:'',cat:null,optin:false,name:'',myId:null,quickDone:false};
+
+function header(){
+  const mine=appState.myId?store.find(f=>f.id===appState.myId):null;
+  const hasReply=mine&&mine.reply&&mine.optin&&!mine.seen;
+  const locHtml=loc?`<span class="loc-pill"><i></i>${loc.zone}</span>`:'';
+  return `<div class="app-head">
+      <div class="bell ${hasReply?'has':''}" onclick="openReply()">🔔<span class="badge">1</span></div>
+      <h2>MoodLoop Staff</h2>
+      <p>Your voice, heard properly.</p>
+      ${locHtml}
+    </div>`;
+}
+function anonBanner(){
+  return `<div class="anon-banner"><span class="ai">🔒</span>
+    <div class="at"><b>Anonymous by default.</b> Leaders see themes and area scores, never names.
+    Nothing shows for groups under ${FLOOR} people. You choose if you want a reply.</div></div>`;
+}
+function openReply(){
+  const mine=appState.myId?store.find(f=>f.id===appState.myId):null;
+  if(mine&&mine.reply&&mine.optin){appState.step='reply';renderApp();}
+}
+
+function renderApp(){
+  const s=appState;let html=header()+`<div class="app-body">`;
+
+  if(s.step==='welcome'){
+    html+=anonBanner();
+    html+=`<div class="step-q">Tap a Loop device to begin</div>
+      <p style="font-size:13px;color:var(--muted);margin:0">Loop devices in staff areas open this app with your location
+      already known. No login, no app store, no tracking of who tapped. Try <b>Staff entrance</b> on the left.</p>`;
+  }
+
+  else if(s.step==='home'){
+    html+=anonBanner();
+    if(!s.quickDone){
+      html+=`<div class="qmood"><div class="ql">How are you feeling right now? <small>One anonymous tap. That is all it takes.</small></div>
+        <div class="qrow">${QUICKMOODS.map((q,i)=>`<div class="qm" onclick="quickMood(${i})" title="${q.l}">${q.e}</div>`).join('')}</div></div>`;
+    } else {
+      html+=`<div class="qmood"><div class="qthanks">✓ Noted, anonymously. Thank you.</div></div>`;
+    }
+    html+=`<div class="tiles">
+      <div class="tile hero" onclick="startIssue()"><div class="ti">🛠️</div><b>Raise an issue</b>
+        <small>Safety, kit, workload, rota. Anonymous unless you choose otherwise.</small></div>
+      <div class="tile" onclick="go('recog')"><div class="ti">⭐</div><b>Recognise a colleague</b><small>Give someone a shout-out.</small></div>
+      <div class="tile" onclick="go('idea')"><div class="ti">💡</div><b>Share an idea</b><small>Anything that would make work better.</small></div>
+      <div class="tile" onclick="go('wall')"><div class="ti">📣</div><b>You said / we did</b><small>What changed because of feedback.</small></div>
+      <div class="tile" style="grid-column:1/-1" onclick="go('support')"><div class="ti">🤝</div><b>Support &amp; wellbeing</b>
+        <small>Resources, and a confidential route to a real person if you want one.</small></div>
+    </div>`;
+  }
+
+  else if(s.step==='issue'){
+    html+=`<div class="back" onclick="go('home')">← back</div>`;
+    if(loc&&loc.kind==='area')html+=`<div class="ctx-pill">📍 ${loc.zone}</div>`;
+    html+=`<div class="step-q">What kind of issue?</div><div class="chips">`;
+    ISSUE_CATS.forEach(c=>{html+=`<div class="chip ${s.cat===c?'sel':''}" onclick="pickCat('${c}')">${CAT_ICON[c]} ${c}</div>`});
+    html+=`</div>`;
+    if(s.cat){
+      html+=`<div class="field-lab" style="margin-top:16px">What is happening?</div>
+        <textarea id="freeText" placeholder="In your own words…" oninput="appState.text=this.value">${s.text}</textarea>`;
+      html+=optinBlock('I want a reply about this','Give a name or initials and your leader can come back to you confidentially.');
+      html+=`<button class="btn" onclick="submitIssue()">Send ${s.optin?'with my name':'anonymously'}</button>`;
+    }
+  }
+
+  else if(s.step==='recog'){
+    html+=`<div class="back" onclick="go('home')">← back</div>
+      <div class="step-q">Who deserves a shout-out?</div>
+      <input type="text" id="recogWho" placeholder="Name (and team if you like)">
+      <div class="field-lab" style="margin-top:14px">What did they do?</div>
+      <textarea id="recogText" placeholder="Keep it specific. It means more."></textarea>
+      <button class="btn" onclick="submitRecog()">Send the shout-out</button>`;
+  }
+
+  else if(s.step==='idea'){
+    html+=`<div class="back" onclick="go('home')">← back</div>
+      <div class="step-q">What is your idea?</div>
+      <textarea id="ideaText" placeholder="Big or small, all welcome…"></textarea>
+      <button class="btn" onclick="submitIdea()">Send anonymously</button>`;
+  }
+
+  else if(s.step==='wall'){
+    html+=`<div class="back" onclick="go('home')">← back</div><div class="step-q">You said / we did</div>`;
+    if(!wall.length)html+=`<div class="empty">Nothing yet. Watch this space.</div>`;
+    wall.forEach(w=>{
+      html+=`<div class="wewall"><div class="ws">You said</div><div class="wy">“${w.you}”</div>
+        <div class="ws">We did</div><div class="wd">${w.we}</div>
+        <div class="wm">${w.by} · ${ago(w.t)}</div></div>`;
+    });
+  }
+
+  else if(s.step==='support'){
+    html+=`<div class="back" onclick="go('home')">← back</div><div class="step-q">Support &amp; wellbeing</div>`;
+    html+=`<div class="lrow"><div class="li">📞</div><div><b>Employee assistance line</b><small>Free, independent, 24/7. Completely outside the company.</small></div></div>
+      <div class="lrow"><div class="li">🧠</div><div><b>Wellbeing hub</b><small>Guides on stress, sleep, money worries and more.</small></div></div>
+      <div class="lrow"><div class="li">🤝</div><div><b>Ask for a private word</b><small>A confidential request straight to your team leader. Only they see it.</small></div></div>`;
+    html+=`<div class="field-lab" style="margin-top:16px">Request a confidential chat</div>
+      <textarea id="suppText" placeholder="A sentence is enough. You choose how much to share."></textarea>
+      <div class="field-lab">Your name (kept between you and your leader)</div>
+      <input type="text" id="suppName" placeholder="Name or initials">
+      <button class="btn" onclick="submitSupport()">Send confidential request</button>`;
+  }
+
+  else if(s.step==='checkout'){
+    html+=`<div class="step-q">How was your shift?</div>`;
+    html+=anonBanner();
+    html+=`<div class="scale">`;
+    for(let i=0;i<=10;i++){
+      const sel=s.score===i,col=i>=7?'var(--pos)':i>=5?'var(--mid)':'var(--neg)';
+      html+=`<div class="sc ${sel?'sel':''}" style="${sel?`background:${col};border-color:${col}`:''}" onclick="pickScore(${i})">${i}</div>`;
+    }
+    html+=`</div><div class="scale-legend"><span>Rough</span><span>Great</span></div>`;
+    if(s.score!==null){
+      const set=s.score>=7?SHIFT_REASONS.high:SHIFT_REASONS.low;
+      html+=`<div class="field-lab" style="margin-top:16px">${s.score>=7?'What made it good?':'What made it hard?'}</div><div class="chips">`;
+      set.forEach(r=>{html+=`<div class="chip ${s.reasons.includes(r)?'sel':''}" onclick="toggleReason('${r}')">${r}</div>`});
+      html+=`</div>`;
+      html+=`<div class="field-lab" style="margin-top:16px">Anything to add?</div>
+        <textarea id="freeText" placeholder="Optional, and anonymous…" oninput="appState.text=this.value">${s.text}</textarea>`;
+      html+=`<button class="btn" onclick="submitCheckout()">Send and head home</button>`;
+    }
+  }
+
+  else if(s.step==='sent'){
+    html+=`<div class="center-state"><div class="tick">✓</div><h3>Thank you</h3>
+      <p>${s.sentMsg||'Received. Your voice counts, and your name stays yours.'}</p>
+      <button class="btn ghost" onclick="go('home')">Back to home</button></div>`;
+  }
+
+  else if(s.step==='reply'){
+    const f=store.find(x=>x.id===s.myId);f.seen=true;
+    html+=`<div class="center-state" style="padding-top:26px">
+      <div class="tick" style="background:var(--anon-soft);color:var(--anon)">💬</div>
+      <h3>A confidential reply</h3>
+      <p>You asked to be contacted. Only you can see this.</p>
+      <div class="reply-card">
+        <div class="from"><div class="pp">${LEADER.init}</div><div><b>${LEADER.name}</b><small>Team Leader · confidential</small></div></div>
+        <div class="msg">${f.reply}</div>
+      </div>
+      <button class="btn ghost" onclick="go('home')">Done</button></div>`;
+  }
+
+  html+=`</div>`;
+  screenEl.innerHTML=html;
+}
+
+/* ---------- app actions ---------- */
+function go(step){appState.step=step;renderApp()}
+function pickCat(c){appState.cat=c;renderApp()}
+function pickScore(n){appState.score=n;if(appState.reasons.length)appState.reasons=[];renderApp()}
+function toggleReason(r){const a=appState.reasons;a.includes(r)?a.splice(a.indexOf(r),1):a.push(r);renderApp()}
+function toggleOptin(){appState.optin=!appState.optin;renderApp()}
+function optinBlock(title,subA){
+  const s=appState;
+  let h=`<div class="optin"><div class="toggle ${s.optin?'on':''}" onclick="toggleOptin()"></div>
+    <div class="txt"><b>${title}</b>${subA}</div></div>`;
+  if(s.optin)h+=`<div class="field-lab">Name or initials</div><input type="text" id="optName" placeholder="e.g. Sam" value="${s.name}" oninput="appState.name=this.value">`;
+  return h;
+}
+function startIssue(){appState.cat=null;appState.text='';appState.optin=false;appState.name='';go('issue')}
+function startCheckout(){appState.score=null;appState.reasons=[];appState.text='';appState.step='checkout'}
+
+function quickMood(i){
+  const q=QUICKMOODS[i];
+  const team=(loc&&TEAMS.includes(loc.zone))?loc.zone:'Front of house';
+  (moods[team]=moods[team]||[]).push(q.v);
+  appState.quickDone=true;
+  renderApp();renderDash();
+  toast('Noted anonymously · '+team+' pulse updated');
+}
+function submitIssue(){
+  const s=appState;
+  if(!s.text.trim()){toast('Add a few words first');return}
+  const item={id:++uid,type:'issue',cat:s.cat,area:(loc&&loc.kind==='area')?loc.zone:'General',
+    text:s.text.trim(),t:now(),status:'open',optin:s.optin,name:s.optin?(s.name.trim()||'Anonymous'):null,isMine:true};
+  store.unshift(item);
+  s.myId=item.id;s.sentMsg=s.optin?'Sent with your name, visible only to your leader. They can reply to you confidentially.':'Sent completely anonymously. If action is taken you will see it on the You said / we did wall.';
+  s.step='sent';renderApp();renderDash(true);
+  toast(s.optin?'Issue sent · confidential contact enabled':'Issue sent · fully anonymous');
+}
+function submitRecog(){
+  const who=document.getElementById('recogWho').value.trim();
+  const txt=document.getElementById('recogText').value.trim();
+  if(!who||!txt){toast('Add a name and a sentence');return}
+  recogs.unshift({id:++uid,to:who,text:txt,t:now()});
+  appState.sentMsg='Shout-out sent. Recognition lands better when it is specific, and that was.';
+  go('sent');renderDash();
+  toast('⭐ Recognition sent');
+}
+function submitIdea(){
+  const txt=document.getElementById('ideaText').value.trim();
+  if(!txt){toast('Write the idea first');return}
+  ideas.unshift({id:++uid,text:txt,t:now()});
+  appState.sentMsg='Idea logged anonymously. The good ones end up on the wall.';
+  go('sent');renderDash();
+  toast('💡 Idea sent anonymously');
+}
+function submitSupport(){
+  const txt=document.getElementById('suppText').value.trim();
+  const name=document.getElementById('suppName').value.trim();
+  if(!txt||!name){toast('A sentence and a name, so your leader can reach you');return}
+  const item={id:++uid,type:'support',cat:'Support',area:'Confidential',text:txt,t:now(),status:'open',optin:true,name:name,isMine:true};
+  store.unshift(item);
+  appState.myId=item.id;
+  appState.sentMsg='Sent confidentially. Only your team leader sees this, and only they can reply.';
+  go('sent');renderDash(true);
+  toast('🤝 Confidential request sent to '+LEADER.name);
+}
+function submitCheckout(){
+  const s=appState;
+  const team=(loc&&TEAMS.includes(loc.zone))?loc.zone:'Front of house';
+  (moods[team]=moods[team]||[]).push(s.score*10);
+  s.reasons.forEach(r=>{shiftThemes[r]=(shiftThemes[r]||0)+1});
+  if(s.text.trim()){
+    store.unshift({id:++uid,type:'issue',cat:'Other',area:team,text:s.text.trim(),t:now(),
+      status:'open',optin:false,name:null,isMine:true,fromShift:true});
+  }
+  s.sentMsg='Shift logged anonymously. Get home safe.';
+  s.step='sent';renderApp();renderDash(true);
+  toast('Shift check-out received · anonymous');
+}
+
+/* ============================================================
+   WORKBENCH
+   ============================================================ */
+let selId=null;
+let shiftThemes={'Understaffed':7,'Equipment problems':5,'Great team spirit':9,'Rota issues':4,'Well staffed':6,'Workload too high':5};
+
+function renderDash(flashNew){
+  const p=overallPulse();
+  document.getElementById('kpiPulse').textContent=p==null?'—':p;
+  document.getElementById('kpiPulse').style.color=p==null?'':pulseColor(p);
+  document.getElementById('kpiCount').textContent=totalResponses();
+  document.getElementById('kpiOpen').textContent=store.filter(f=>f.status==='open').length;
+  document.getElementById('kpiRecog').textContent=recogs.length;
+
+  /* team tiles with anonymity floor */
+  document.getElementById('teams').innerHTML=TEAMS.map(tm=>{
+    const a=moods[tm]||[];
+    if(a.length<FLOOR){
+      return `<div class="tt locked"><div class="tn">${tm}</div>
+        <div class="ts">🔒 below floor</div><div class="tc">${a.length} of ${FLOOR} needed</div></div>`;
+    }
+    const v=Math.round(teamPulse(tm));
+    return `<div class="tt"><div class="tn">${tm}</div>
+      <div class="ts" style="color:${pulseColor(v)}">${v}</div><div class="tc">${a.length} responses</div></div>`;
+  }).join('');
+
+  /* issues feed: confidential first, then open by age, then closed */
+  const sorted=[...store].sort((a,b)=>{
+    const rank=f=>f.type==='support'&&f.status==='open'?0:f.status==='open'?1:2;
+    if(rank(a)!==rank(b))return rank(a)-rank(b);
+    if(rank(a)<2)return a.t-b.t;
+    return b.t-a.t;
+  });
+  document.getElementById('feed').innerHTML=sorted.map(f=>{
+    const stTag=f.status==='closed'?'<span class="status-tag st-closed">Closed</span>':'<span class="status-tag st-open">Open</span>';
+    const extra=[];
+    if(f.status==='open')extra.push(`<span class="tg wait">⏱ waiting ${waitMins(f.t)}m</span>`);
+    extra.push(f.optin?`<span class="tg optin">✉ ${f.type==='support'?'confidential · '+f.name:'reply requested · '+f.name}</span>`
+                      :`<span class="tg anon">🔒 anonymous</span>`);
+    return `<div class="fcard ${f.id===selId?'sel':''} ${flashNew&&f.isMine?'new':''}" onclick="selectItem(${f.id})">
+      <div class="fc-top">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="cat-bub" style="background:${f.type==='support'?'var(--anon)':f.status==='open'?'var(--neg)':'var(--muted)'}">${CAT_ICON[f.cat]||'💬'}</div>
+          <div><div class="fc-touch">${f.cat} · ${f.area}</div><div class="fc-meta">${ago(f.t)}</div></div>
+        </div>
+        ${stTag}
+      </div>
+      <div class="fc-text">${f.text}</div>
+      <div class="tags">${extra.join('')}</div>
+    </div>`;
+  }).join('');
+
+  /* themes */
+  const arr=Object.entries(shiftThemes).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const max=arr.length?arr[0][1]:1;
+  const neg=new Set(SHIFT_REASONS.low);
+  document.getElementById('themes').innerHTML=arr.map(([tag,n])=>{
+    const col=neg.has(tag)?'var(--neg)':'var(--pos)';
+    return `<div class="theme"><div class="th2"><b>${tag}</b><span style="color:var(--muted)">${n}</span></div>
+      <div class="bar"><i style="width:${n/max*100}%;background:${col}"></i></div></div>`;
+  }).join('');
+
+  /* recognition */
+  document.getElementById('recogs').innerHTML=recogs.slice(0,3).map(r=>
+    `<div class="recog"><b>⭐ ${r.to}</b><p>“${r.text}”</p></div>`).join('');
+
+  if(selId)renderDetail();
+}
+
+function selectItem(id){selId=id;renderDash();document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'nearest'})}
+
+let replyMode='team';   /* 'team' = You said/we did wall · 'conf' = confidential (opt-in only) */
+function setMode(m){replyMode=m;renderDetail()}
+
+function renderDetail(){
+  const f=store.find(x=>x.id===selId);
+  if(!f){document.getElementById('detail').innerHTML='<div class="empty">Select an item…</div>';return}
+  if(!f.optin)replyMode='team';
+  if(f.type==='support')replyMode='conf';
+  let html=`<div class="detail">
+    <div class="dh"><div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="fc-touch">${CAT_ICON[f.cat]||'💬'} ${f.cat} · ${f.area}</div>
+      <div class="fc-meta">${f.optin?(f.type==='support'?'confidential: '+f.name:'reply ok: '+f.name):'🔒 anonymous'} · ${ago(f.t)}</div>
+    </div></div>
+    <div class="db">
+      <p class="quote">“${f.text}”</p>`;
+
+  if(f.reply){
+    html+=`<div class="field-lab">Response sent</div>
+      <div class="reply-card" style="margin-top:0"><div class="msg">${f.reply}</div></div>
+      <div style="font-size:12px;color:var(--green2);margin-top:10px;font-weight:600">✓ ${f.optin&&f.repliedConf?'Replied confidentially':'Posted to You said / we did'}</div>`;
+  } else {
+    html+=`<div class="field-lab">Respond</div>
+      <div class="mode-tabs">
+        <button class="mtab ${replyMode==='team'?'on':''}" ${f.type==='support'?'disabled':''} onclick="setMode('team')">📣 Team reply (wall)</button>
+        <button class="mtab ${replyMode==='conf'?'on':''}" ${f.optin?'':'disabled'} onclick="setMode('conf')">✉ Confidential${f.optin?' to '+f.name:''}</button>
+      </div>`;
+    if(replyMode==='team'){
+      html+=`<div class="field-lab">You said (summarise, never quote identifiably)</div>
+        <input type="text" id="wallYou" value="${f.cat==='Equipment'?'Kit keeps failing in '+f.area+'.':''}" placeholder="Summarise the theme…">
+        <div class="field-lab">We did / we will</div>
+        <textarea id="wallWe" placeholder="What is actually changing…"></textarea>
+        <button class="btn" onclick="sendTeamReply(${f.id})">Post to You said / we did</button>`;
+    } else {
+      html+=`<div class="field-lab">Confidential reply to ${f.name}</div>
+        <textarea id="confBox" placeholder="Only ${f.name} will see this…">${f.type==='support'?'Hi '+f.name+', thank you for trusting me with this. Come find me any time tomorrow, or name a time that suits and it is yours.':''}</textarea>
+        <button class="btn" onclick="sendConfReply(${f.id})">Send confidentially</button>`;
+    }
+  }
+  html+=`</div></div>`;
+  document.getElementById('detail').innerHTML=html;
+}
+
+function sendTeamReply(id){
+  const f=store.find(x=>x.id===id);
+  const you=document.getElementById('wallYou').value.trim();
+  const we=document.getElementById('wallWe').value.trim();
+  if(!you||!we){toast('Fill in both parts. The wall only works when it is concrete');return}
+  wall.unshift({you:you,we:we,t:now(),by:LEADER.name});
+  f.reply=we;f.replyAt=now();f.status='closed';f.repliedConf=false;
+  renderDash();
+  if(appState.step==='wall')renderApp();
+  toast('📣 Posted to You said / we did · visible on every staff phone');
+}
+function sendConfReply(id){
+  const f=store.find(x=>x.id===id);
+  const msg=document.getElementById('confBox').value.trim();
+  if(!msg){toast('Write the reply first');return}
+  f.reply=msg;f.replyAt=now();f.status='closed';f.repliedConf=true;f.seen=false;
+  renderDash();
+  if(appState.myId===id)renderApp();
+  toast('✉ Sent confidentially to '+f.name+' only');
+}
+
+/* ============================================================
+   helpers
+   ============================================================ */
+let toastT;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+/* init */
+renderSim();
+renderApp();
+renderDash();
+</script>
+
+<script>
+/* ---- guided tour (site edition; skippable) ---- */
+(function(){
+  var STEPS=["Two sides of one system: the <b>colleague's phone</b> on the left, the <b>team leader's workbench</b> on the right. Note the anonymity promise on the phone before anything else happens. Start by tapping <b>Staff entrance</b> in the device panel.", "One tap on a mood face is a complete, anonymous datapoint. Watch the team pulse move on the workbench. Now look at the <b>Office</b> tile there: three responses, below the floor of five, so it shows a lock instead of a score. Small teams can never be worked out.", "Tap the <b>Operations</b> device and choose <b>Raise an issue</b>. Leave the contact toggle off and send it. On the workbench it arrives with an <b>anonymous</b> badge, and the confidential reply tab is disabled. Leaders literally cannot ask who said it.", "Select that issue on the workbench and answer it with a <b>team reply</b>. It posts to the <b>You said / we did</b> wall on every colleague's phone. Open the wall tile on the phone to see it land. That visible action is what makes the next voice more honest.", "Finally, two more routes: <b>Support &amp; wellbeing</b> shows the opt-in path, where a colleague chooses to share their name and receives a reply only they can see. And tapping <b>Staff exit</b> triggers the end-of-shift check-out: a score, a reason, and home."];
+  var i=0;
+  var css=document.createElement('style');
+  css.textContent='#ltour{position:fixed;bottom:22px;left:22px;z-index:500;width:330px;max-width:88vw;'+
+    'background:#ffffff;color:#1c1d1a;border:1px solid #e3e1d8;border-radius:16px;'+
+    'box-shadow:0 18px 50px rgba(0,0,0,.35);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;'+
+    'transform:translateY(12px);opacity:0;transition:.35s;pointer-events:none}'+
+    '#ltour.show{transform:none;opacity:1;pointer-events:auto}'+
+    '#ltour .th{display:flex;align-items:center;gap:9px;padding:13px 16px 10px;font-size:11px;font-weight:700;'+
+    'letter-spacing:.12em;text-transform:uppercase;color:#b08842}'+
+    '#ltour .th .cnt{margin-left:auto;font-weight:600;letter-spacing:0;opacity:.7}'+
+    '#ltour .tb{padding:0 16px 12px;font-size:13px;line-height:1.55}'+
+    '#ltour .tb b{color:#b08842}'+
+    '#ltour .tf{display:flex;gap:8px;padding:0 16px 15px;align-items:center}'+
+    '#ltour button{border:none;border-radius:9px;padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}'+
+    '#ltour .nxt{background:#b08842;color:#fff}'+
+    '#ltour .bck{background:transparent;color:inherit;border:1px solid #e3e1d8;opacity:.8}'+
+    '#ltour .skp{margin-left:auto;background:none;border:none;font-size:11.5px;opacity:.6;text-decoration:underline;cursor:pointer;color:inherit}'+
+    '#ltRestart{position:fixed;bottom:22px;left:22px;z-index:499;border:none;border-radius:999px;padding:9px 15px;'+
+    'font-size:11.5px;font-weight:700;cursor:pointer;background:#b08842;color:#fff;opacity:.9;display:none;'+
+    'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3)}';
+  document.head.appendChild(css);
+  var el=document.createElement('div'); el.id='ltour';
+  el.innerHTML='<div class="th">&#9654; Guided tour <span class="cnt"></span></div><div class="tb"></div>'+
+    '<div class="tf"><button class="bck">Back</button><button class="nxt">Next</button><button class="skp">Skip tour</button></div>';
+  document.body.appendChild(el);
+  var rb=document.createElement('button'); rb.id='ltRestart'; rb.innerHTML='&#9654; Tour';
+  document.body.appendChild(rb);
+  function paint(){
+    el.querySelector('.cnt').textContent=(i+1)+' / '+STEPS.length;
+    el.querySelector('.tb').innerHTML=STEPS[i];
+    el.querySelector('.bck').style.visibility=i?'visible':'hidden';
+    el.querySelector('.nxt').textContent=(i===STEPS.length-1)?'Finish':'Next';
+  }
+  function hide(){el.classList.remove('show');rb.style.display='block'}
+  function show(){i=0;paint();el.classList.add('show');rb.style.display='none'}
+  el.querySelector('.nxt').addEventListener('click',function(){ if(i===STEPS.length-1){hide();return} i++;paint(); });
+  el.querySelector('.bck').addEventListener('click',function(){ if(i>0){i--;paint();} });
+  el.querySelector('.skp').addEventListener('click',hide);
+  rb.addEventListener('click',show);
+  setTimeout(show,900);
+})();
+</script>
+</body>
+</html>

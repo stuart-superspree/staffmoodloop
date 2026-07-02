@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodLoop Staff · Organisation View (concept)</title>
+<style>
+  :root{
+    --bg:#0c0913;
+    --panel:#171022;
+    --panel2:#1d1430;
+    --line:#2a2040;
+    --line2:#372a52;
+    --text:#f3eefb;
+    --muted:#a596c4;
+    --muted2:#7c6f99;
+    --purple:#a855f7;
+    --purple2:#c026d3;
+    --pink:#ec4899;
+    --green:#10b981;
+    --yellow:#eab308;
+    --red:#ef4444;
+    --glow:0 0 40px rgba(168,85,247,.18);
+    --radius:18px;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg)}
+  body{font-family:var(--sans);color:var(--text);-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(900px 500px at 78% -8%, rgba(192,38,211,.16), transparent),
+      radial-gradient(700px 500px at 8% 110%, rgba(168,85,247,.12), transparent),
+      var(--bg);
+    min-height:100vh}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#2c2244;border-radius:8px}
+
+  .app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+  @media(max-width:900px){.app{grid-template-columns:1fr}}
+
+  /* ---------- sidebar ---------- */
+  .side{border-right:1px solid var(--line);padding:22px 18px;display:flex;flex-direction:column;gap:6px;
+    background:linear-gradient(180deg,rgba(29,20,48,.5),rgba(12,9,19,.2));position:sticky;top:0;height:100vh}
+  @media(max-width:900px){.side{height:auto;position:static}}
+  .logo{display:flex;align-items:center;gap:11px;margin-bottom:22px}
+  .logo .mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--purple),var(--pink));
+    display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:var(--glow)}
+  .logo b{font-size:17px;display:block;letter-spacing:.2px}
+  .logo small{font-size:11px;color:var(--muted)}
+  .nav{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+  .nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--muted);
+    cursor:pointer;font-size:14.5px;font-weight:500;transition:.15s;text-decoration:none;position:relative}
+  .nav a:hover{color:var(--text);background:rgba(168,85,247,.08)}
+  .nav a.on{color:#fff;background:linear-gradient(90deg,rgba(168,85,247,.28),rgba(168,85,247,.05));
+    border:1px solid var(--line2);box-shadow:inset 3px 0 0 var(--purple)}
+  .nav a .ic{font-size:17px;width:20px;text-align:center}
+  .nav a .bdg{margin-left:auto;background:var(--red);color:#fff;font-size:11px;font-weight:700;
+    min-width:20px;height:20px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+  .filters{margin-top:8px;border-top:1px solid var(--line);padding-top:16px;flex:1;overflow-y:auto}
+  .filters .ft{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);margin:0 0 8px;font-weight:700}
+  .filters label{font-size:11.5px;color:var(--muted);display:block;margin:14px 0 6px}
+  select{width:100%;background:var(--panel);border:1px solid var(--line2);color:var(--text);
+    border-radius:10px;padding:9px 10px;font-family:inherit;font-size:13px}
+  .exports{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+  .xbtn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:11px;font-size:13px;
+    font-weight:600;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--text);transition:.15s;font-family:inherit}
+  .xbtn.primary{background:linear-gradient(135deg,var(--purple),var(--purple2));border-color:transparent}
+  .xbtn:hover{filter:brightness(1.12)}
+
+  /* ---------- main ---------- */
+  .main{padding:26px 30px 90px;position:relative;max-width:1180px}
+  .crumb{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:14px}
+  .crumb a{cursor:pointer;color:var(--muted)}
+  .crumb a:hover{color:var(--text);text-decoration:underline}
+  .crumb b{color:var(--text)}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;gap:16px;flex-wrap:wrap}
+  .page-head h1{font-size:23px;margin:0 0 3px}
+  .page-head p{margin:0;color:var(--muted);font-size:13.5px}
+  .rangetabs{display:flex;gap:6px}
+  .rtab{font-size:12.5px;padding:8px 14px;border-radius:10px;border:1px solid var(--line2);cursor:pointer;color:var(--muted)}
+  .rtab.on{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border-color:transparent}
+
+  .panel{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--glow)}
+
+  /* pulse */
+  .pulse{display:flex;align-items:center;justify-content:space-between;padding:30px 34px;margin-bottom:18px;gap:20px;flex-wrap:wrap}
+  .pulse .nums{display:flex;align-items:flex-end;gap:30px}
+  .pulse .big{font-size:54px;font-weight:800;line-height:1;background:linear-gradient(135deg,#fff,var(--pink));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .pulse .lab{font-size:12px;color:var(--muted)}
+  .pulse .delta{font-size:24px;font-weight:700;color:var(--green)}
+  .pulse .delta.neg{color:var(--red)}
+  .pulse .delta .lab{display:block;font-size:11.5px;font-weight:500;margin-top:3px}
+  .gauge{position:relative;width:190px;height:190px;flex:0 0 auto}
+  .gauge .ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .ctr b{font-size:42px;font-weight:800}
+  .gauge .ctr span{font-size:12px;letter-spacing:.18em;color:var(--muted)}
+
+  /* store / zone tiles */
+  .hm{padding:24px;margin-bottom:18px}
+  .hm .hh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+  .hm h3{margin:0;font-size:17px}
+  .hm .hh p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted)}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:1050px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tiles.z5{grid-template-columns:repeat(5,1fr)}
+  @media(max-width:1050px){.tiles.z5{grid-template-columns:repeat(2,1fr)}}
+  .tile{border-radius:14px;padding:18px 14px;min-height:126px;display:flex;flex-direction:column;justify-content:space-between;
+    cursor:pointer;transition:.15s;border:1px solid transparent;position:relative}
+  .tile:hover{transform:translateY(-3px)}
+  .tile .tn{font-size:14px;font-weight:700}
+  .tile .ts{font-size:30px;font-weight:800}
+  .tile .tc{font-size:11px;opacity:.85}
+  .tile .sys{position:absolute;top:10px;right:10px;font-size:9.5px;font-weight:800;letter-spacing:.06em;
+    background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.4);border-radius:6px;padding:3px 6px}
+  .tile .pulse-dot{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%;background:#fff;opacity:.5;animation:bp 1.8s infinite}
+  @keyframes bp{0%{box-shadow:0 0 0 0 rgba(255,255,255,.5)}70%{box-shadow:0 0 0 8px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+
+  /* estate trend */
+  .twrap{padding:24px;margin-bottom:18px}
+  .twrap h3{margin:0 0 16px;font-size:17px}
+  .chart{width:100%;height:240px}
+  .annot{fill:var(--yellow);font-size:11px;font-weight:600}
+
+  /* alerts */
+  .alerts-head{display:flex;gap:10px;margin-bottom:18px}
+  .pill{font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px}
+  .pill.crit{background:rgba(239,68,68,.16);color:#ff8a8a;border:1px solid rgba(239,68,68,.4)}
+  .pill.warn{background:rgba(234,179,8,.14);color:#f3d36b;border:1px solid rgba(234,179,8,.4)}
+  .pill.sys{background:rgba(168,85,247,.16);color:#d1a4ff;border:1px solid rgba(168,85,247,.45)}
+  .secti{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin:18px 0 12px}
+  .secti.sys{color:#d1a4ff}.secti.crit{color:#ff8a8a}.secti.warn{color:#f3d36b}
+  .acard{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:15px;margin-bottom:13px;
+    background:var(--panel);border:1px solid var(--line)}
+  .acard.sys{border-left:3px solid var(--purple);box-shadow:0 0 26px rgba(168,85,247,.14)}
+  .acard.crit{border-left:3px solid var(--red);box-shadow:0 0 26px rgba(239,68,68,.12)}
+  .acard.warn{border-left:3px solid var(--yellow)}
+  .acard .aic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}
+  .acard.sys .aic{background:rgba(168,85,247,.16)}
+  .acard.crit .aic{background:rgba(239,68,68,.15)}
+  .acard.warn .aic{background:rgba(234,179,8,.15)}
+  .acard .ab{flex:1;min-width:0}
+  .acard .ab b{font-size:15.5px}
+  .acard .ab p{margin:4px 0 7px;font-size:13px;color:var(--muted)}
+  .acard .meta{font-size:11.5px;color:var(--muted2);display:flex;gap:16px;flex-wrap:wrap}
+  .acard .meta .imp{color:#ff8a8a;font-weight:600}
+  .acard .right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .takebtn{border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;
+    font-family:inherit;color:#fff;background:linear-gradient(135deg,var(--red),#d81f4a)}
+  .takebtn.sys{background:linear-gradient(135deg,var(--purple),var(--purple2))}
+  .takebtn.warn{background:transparent;border:1px solid var(--yellow);color:#f3d36b}
+  .takebtn:hover{filter:brightness(1.1)}
+  .acard.resolved{opacity:.55}
+  .acard.resolved .takebtn{background:rgba(16,185,129,.2);color:#7fe9c0;pointer-events:none}
+  .empty{color:var(--muted);text-align:center;padding:40px;border:1px dashed var(--line2);border-radius:14px}
+
+  /* voices */
+  .voices{padding:20px 24px;margin-bottom:18px}
+  .voices h3{margin:0 0 14px;font-size:16px}
+  .vrow{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}
+  .vrow:last-child{border-bottom:none}
+  .vdot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;margin-top:5px}
+  .vrow .vt{font-size:13px;line-height:1.45}
+  .vrow .vm{font-size:11px;color:var(--muted2);margin-top:3px}
+
+  .live-bar{position:fixed;bottom:0;left:248px;right:0;background:rgba(12,9,19,.85);backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);padding:13px 30px;display:flex;align-items:center;justify-content:space-between;z-index:40}
+  @media(max-width:900px){.live-bar{left:0}}
+  .live-bar .l{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:9px}
+  .live-bar .ldot{width:9px;height:9px;border-radius:50%;background:var(--green);animation:bp2 1.6s infinite}
+  @keyframes bp2{0%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);z-index:120;
+    background:#1d1430;border:1px solid var(--line2);color:#fff;padding:13px 20px;border-radius:13px;font-size:13.5px;
+    box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.3s;display:flex;align-items:center;gap:11px;max-width:90vw}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .td{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side">
+    <div class="logo">
+      <div class="mark">🙂</div>
+      <div><b>MoodLoop Staff</b><small>Organisation view · internal</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <a data-view="estate" class="on"><span class="ic">🏬</span> Estate</a>
+      <a data-view="alerts"><span class="ic">🔔</span> Alerts <span class="bdg" id="navBadge">0</span></a>
+    </nav>
+    <div class="filters">
+      <p class="ft">Filters</p>
+      <label>Date range</label>
+      <select id="fDate"><option>Today</option><option>Last 7 days</option><option>Last 30 days</option></select>
+      <label>Region</label>
+      <select id="fRegion"><option>All regions</option><option>London &amp; South East</option><option>South &amp; West</option><option>North</option><option>Scotland</option></select>
+      <div class="exports">
+        <button class="xbtn primary" onclick="exportPDF()">⭳ Export PDF</button>
+        <button class="xbtn" onclick="exportCSV()">▤ Export CSV</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="main"></main>
+</div>
+
+<div class="live-bar">
+  <div class="l"><span class="ldot"></span> Live · aggregating <span id="storeCount">0</span> sites · <span id="totResp">0</span> check-ins today</div>
+  <div class="l">MoodLoop Staff · organisation view (concept)</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   ORG DATA: per-site team aggregates (same schema as store MoodLoop;
+   in production this is the same shared store, rolled up by store id)
+   ===================================================================== */
+const ZONES=['Front of house','Operations','Logistics','Canteen','Customer service'];
+const MOODVALS={vhappy:100,happy:80,nhappy:42,vunhappy:12};
+
+function mk(vh,h,nh,vu){return{vhappy:vh,happy:h,nhappy:nh,vunhappy:vu}}
+const STORES=[
+  {id:'oxf',name:'London',region:'London & South East',agg:{
+    'Front of house':mk(320,260,60,20),'Operations':mk(300,250,70,25),'Logistics':mk(190,220,120,90),
+    'Canteen':mk(240,200,80,30),'Customer service':mk(90,110,140,159)}},
+  {id:'sou',name:'Southampton',region:'South & West',agg:{
+    'Front of house':mk(210,160,30,8),'Operations':mk(190,170,40,12),'Logistics':mk(160,150,45,15),
+    'Canteen':mk(180,140,35,10),'Customer service':mk(150,140,50,18)}},
+  {id:'che',name:'Manchester',region:'North',agg:{
+    'Front of house':mk(140,120,45,18),'Operations':mk(90,100,90,60),'Logistics':mk(110,120,60,25),
+    'Canteen':mk(120,110,50,20),'Customer service':mk(55,70,95,105)}},
+  {id:'blu',name:'Brighton',region:'London & South East',agg:{
+    'Front of house':mk(230,190,50,15),'Operations':mk(210,180,55,20),'Logistics':mk(170,160,60,22),
+    'Canteen':mk(190,160,45,15),'Customer service':mk(140,130,70,35)}},
+  {id:'edi',name:'Edinburgh',region:'Scotland',agg:{
+    'Front of house':mk(200,150,30,10),'Operations':mk(180,160,40,12),'Logistics':mk(150,140,45,14),
+    'Canteen':mk(170,130,35,12),'Customer service':mk(140,120,45,20)}},
+  {id:'liv',name:'Liverpool',region:'North',agg:{
+    'Front of house':mk(130,110,60,30),'Operations':mk(120,110,70,40),'Logistics':mk(90,100,80,55),
+    'Canteen':mk(110,100,60,30),'Customer service':mk(45,60,100,120)}},
+  {id:'lee',name:'Leeds',region:'North',agg:{
+    'Front of house':mk(170,140,50,20),'Operations':mk(150,140,60,25),'Logistics':mk(130,130,65,30),
+    'Canteen':mk(150,120,50,20),'Customer service':mk(110,110,70,40)}},
+  {id:'nor',name:'Norwich',region:'South & West',agg:{
+    'Front of house':mk(150,120,35,12),'Operations':mk(140,120,40,15),'Logistics':mk(95,105,75,45),
+    'Canteen':mk(130,110,40,14),'Customer service':mk(115,105,50,22)}}
+];
+
+/* sample recent voices per struggling store/zone */
+const VOICES={
+  oxf:[{z:'Customer service',s:'bad',t:'Rota gaps again. We started two short and it never recovered.',m:'anonymous · 2 min ago'},
+       {z:'Logistics',s:'bad',t:'Second week the heaters are broken. Freezing at 6am.',m:'anonymous · 8 min ago'},
+       {z:'Front of house',s:'good',t:'New team lead actually listens. Different place this month.',m:'anonymous · 52 min ago'}],
+  liv:[{z:'Customer service',s:'bad',t:'Breaks getting skipped when cover is short. It adds up.',m:'anonymous · 4 min ago'},
+       {z:'Logistics',s:'bad',t:'Scanner batteries dying mid-shift, we lose an hour a day.',m:'anonymous · 20 min ago'}],
+  che:[{z:'Customer service',s:'bad',t:'Rota published two days before the week starts. Impossible.',m:'opted in · 6 min ago'},
+       {z:'Operations',s:'bad',t:'Two big jobs double-booked, no extra hands scheduled.',m:'anonymous · 31 min ago'}],
+  nor:[{z:'Logistics',s:'mid',t:'Better since the new kit arrived, still gaps on lates.',m:'anonymous · 15 min ago'}]
+};
+
+const BASE_YESTERDAY=71.8, BASE_LASTWEEK=69.4;
+const TREND={labels:['Mon','Tue','Wed','Thu','Fri','Sat','Now'],vals:[70,72,71,68,73,75,0],dipIdx:3,dipLabel:'Thu: rota gaps at 3 sites'};
+
+/* =====================================================================
+   METRICS
+   ===================================================================== */
+function zoneHappiness(agg){
+  const tot=agg.vhappy+agg.happy+agg.nhappy+agg.vunhappy;
+  if(!tot)return 0;
+  return (agg.vhappy*100+agg.happy*80+agg.nhappy*42+agg.vunhappy*12)/tot;
+}
+function zoneTotal(agg){return agg.vhappy+agg.happy+agg.nhappy+agg.vunhappy}
+function storeHappiness(st){
+  let sum=0,tot=0;
+  ZONES.forEach(z=>{const a=st.agg[z];sum+=(a.vhappy*100+a.happy*80+a.nhappy*42+a.vunhappy*12);tot+=zoneTotal(a)});
+  return tot?sum/tot:0;
+}
+function storeResponses(st){return ZONES.reduce((s,z)=>s+zoneTotal(st.agg[z]),0)}
+function storesActive(){
+  const r=document.getElementById('fRegion').value;
+  return r==='All regions'?STORES:STORES.filter(s=>s.region===r);
+}
+function estateHappiness(list){
+  let sum=0,tot=0;
+  list.forEach(st=>ZONES.forEach(z=>{const a=st.agg[z];
+    sum+=(a.vhappy*100+a.happy*80+a.nhappy*42+a.vunhappy*12);tot+=zoneTotal(a)}));
+  return tot?sum/tot:0;
+}
+function needCare(st){return ZONES.reduce((s,z)=>s+st.agg[z].nhappy+st.agg[z].vunhappy,0)}
+function band(s){
+  return s>=70?{c:'#fff',bg:'linear-gradient(135deg,#7c3aed,#a855f7)',l:'High'}
+       : s>=55?{c:'#3a2c08',bg:'linear-gradient(135deg,#eab308,#f59e0b)',l:'Medium'}
+       :        {c:'#fff',bg:'linear-gradient(135deg,#ef4444,#f43f5e)',l:'Low'};
+}
+
+/* =====================================================================
+   ALERTS: site-level + systemic cross-site patterns
+   ===================================================================== */
+let resolved={};   /* key -> true */
+
+function storeAlerts(){
+  const list=[];
+  storesActive().forEach(st=>{
+    const s=storeHappiness(st);
+    const key='store-'+st.id;
+    if(s<62) list.push({key,sev:'crit',store:st,score:s,resolved:!!resolved[key],
+      title:st.name+': site staff pulse critical',
+      desc:'Site-wide colleague pulse at '+Math.round(s)+'%. Customer service is the primary driver.',
+      impact:needCare(st),icon:'🏬'});
+    else if(s<70) list.push({key,sev:'warn',store:st,score:s,resolved:!!resolved[key],
+      title:st.name+': trending down',
+      desc:'Colleague pulse at '+Math.round(s)+'%, below the organisation floor of 70%.',
+      impact:needCare(st),icon:'📉'});
+  });
+  return list.sort((a,b)=>a.score-b.score);
+}
+function systemicAlerts(){
+  const list=[];
+  ZONES.forEach(z=>{
+    const bad=storesActive().filter(st=>zoneHappiness(st.agg[z])<55);
+    if(bad.length>=2){
+      const key='sys-'+z;
+      list.push({key,sev:'sys',zone:z,stores:bad,resolved:!!resolved[key],
+        title:z+' pulse critical at '+bad.length+' sites',
+        desc:'Same team struggling across '+bad.map(s=>s.name).join(', ')+'. The pattern suggests a rota or process issue, not a local one.',
+        impact:bad.reduce((s,st)=>s+st.agg[z].nhappy+st.agg[z].vunhappy,0),icon:'🧩'});
+    }
+  });
+  return list;
+}
+function openAlertCount(){
+  return systemicAlerts().filter(a=>!a.resolved).length+storeAlerts().filter(a=>!a.resolved).length;
+}
+
+/* =====================================================================
+   VIEW STATE
+   ===================================================================== */
+let view='estate';          /* 'estate' | 'alerts' */
+let drillStore=null;        /* store id when drilled in */
+const main=document.getElementById('main');
+
+function render(){
+  document.getElementById('navBadge').textContent=openAlertCount();
+  document.getElementById('storeCount').textContent=storesActive().length;
+  document.getElementById('totResp').textContent=storesActive().reduce((s,st)=>s+storeResponses(st),0).toLocaleString();
+  if(view==='alerts') renderAlerts();
+  else if(drillStore) renderStore();
+  else renderEstate();
+}
+
+/* ---------- ESTATE ---------- */
+function renderEstate(){
+  const list=storesActive();
+  const pulse=estateHappiness(list);
+  const dY=pulse-BASE_YESTERDAY, dW=pulse-BASE_LASTWEEK;
+  const word=pulse>=78?'HAPPY':pulse>=60?'POSITIVE':pulse>=45?'MIXED':'AT RISK';
+
+  let h=`<div class="page-head"><div><h1>Organisation Staff Pulse</h1>
+    <p>Live colleague sentiment across ${list.length} sites. Anonymity floors apply at every level. Click a site to drill in</p></div></div>`;
+
+  h+=`<div class="panel pulse">
+      <div><div class="nums">
+        <div><div class="big">${pulse.toFixed(1)}%</div><div class="lab">Organisation score</div></div>
+        <div class="delta ${dY<0?'neg':''}">${dY>=0?'+':''}${dY.toFixed(1)}%<span class="lab">vs yesterday</span></div>
+        <div class="delta ${dW<0?'neg':''}">${dW>=0?'+':''}${dW.toFixed(1)}%<span class="lab">vs last week</span></div>
+      </div></div>
+      ${gaugeSVG(pulse,word)}
+    </div>`;
+
+  /* store heatmap */
+  const sys=systemicAlerts().filter(a=>!a.resolved);
+  const sysStores=new Set(); sys.forEach(a=>a.stores.forEach(st=>sysStores.add(st.id)));
+  h+=`<div class="panel hm"><div class="hh"><div><h3>Site Staff Pulse Heatmap</h3>
+      <p>Every site computes from the same team-level check-ins: organisation → site → team</p></div>
+      <div class="legend"><span><i style="background:var(--purple)"></i>High</span>
+      <span><i style="background:var(--yellow)"></i>Medium</span>
+      <span><i style="background:var(--red)"></i>Low</span></div></div><div class="tiles">`;
+  list.forEach(st=>{
+    const s=storeHappiness(st), b=band(s);
+    h+=`<div class="tile" style="background:${b.bg};color:${b.c}" onclick="drill('${st.id}')">
+        ${sysStores.has(st.id)?'<span class="sys">SYSTEMIC</span>':'<span class="pulse-dot"></span>'}
+        <div class="tn">${st.name}</div>
+        <div><div class="ts">${Math.round(s)}</div>
+        <div class="tc">${b.l} · ${needCare(st)} need support · ${storeResponses(st).toLocaleString()} check-ins</div></div>
+      </div>`;
+  });
+  h+=`</div></div>`;
+
+  /* estate trend */
+  const vals=TREND.vals.slice(); vals[vals.length-1]=Math.round(pulse);
+  h+=`<div class="panel twrap"><h3>Organisation staff pulse · last 7 days</h3>${lineSVG(TREND.labels,vals,TREND.dipIdx,TREND.dipLabel)}</div>`;
+
+  main.innerHTML=h;
+}
+
+/* ---------- STORE DRILL-DOWN ---------- */
+function renderStore(){
+  const st=STORES.find(s=>s.id===drillStore);
+  const s=storeHappiness(st);
+  const word=s>=78?'HAPPY':s>=60?'POSITIVE':s>=45?'MIXED':'AT RISK';
+
+  let h=`<div class="crumb"><a onclick="backToEstate()">Estate</a> <span>›</span> <b>${st.name}</b></div>`;
+  h+=`<div class="page-head"><div><h1>${st.name}</h1>
+    <p>${st.region} · ${storeResponses(st).toLocaleString()} check-ins today · every voice anonymous unless opted in</p></div></div>`;
+
+  h+=`<div class="panel pulse">
+      <div><div class="nums">
+        <div><div class="big">${s.toFixed(1)}%</div><div class="lab">Site score</div></div>
+        <div class="delta ${s<BASE_YESTERDAY?'neg':''}">${(s-BASE_YESTERDAY)>=0?'+':''}${(s-BASE_YESTERDAY).toFixed(1)}%<span class="lab">vs organisation yesterday</span></div>
+      </div></div>
+      ${gaugeSVG(s,word)}
+    </div>`;
+
+  h+=`<div class="panel hm"><div class="hh"><div><h3>Team Pulse · ${st.name}</h3>
+      <p>The same view the site's leadership team sees. Teams under 5 responses never display</p></div>
+      <div class="legend"><span><i style="background:var(--purple)"></i>High</span>
+      <span><i style="background:var(--yellow)"></i>Medium</span>
+      <span><i style="background:var(--red)"></i>Low</span></div></div><div class="tiles z5">`;
+  ZONES.forEach(z=>{
+    const zs=zoneHappiness(st.agg[z]), b=band(zs);
+    h+=`<div class="tile" style="background:${b.bg};color:${b.c};cursor:default">
+        <span class="pulse-dot"></span>
+        <div class="tn">${z}</div>
+        <div><div class="ts">${Math.round(zs)}</div>
+        <div class="tc">${b.l} · ${st.agg[z].nhappy+st.agg[z].vunhappy} need support</div></div>
+      </div>`;
+  });
+  h+=`</div></div>`;
+
+  /* live voices for this store */
+  const vs=VOICES[st.id]||[];
+  if(vs.length){
+    h+=`<div class="panel voices"><h3>Colleague voices · ${st.name} (anonymous)</h3>`;
+    vs.forEach(v=>{
+      const col=v.s==='bad'?'var(--red)':v.s==='mid'?'var(--yellow)':'var(--green)';
+      h+=`<div class="vrow"><span class="vdot" style="background:${col}"></span>
+        <div><div class="vt">“${v.t}”</div><div class="vm">${v.z} · ${v.m}</div></div></div>`;
+    });
+    h+=`</div>`;
+  }
+
+  main.innerHTML=h;
+}
+
+/* ---------- ALERTS ---------- */
+function renderAlerts(){
+  const sys=systemicAlerts(), sa=storeAlerts();
+  const crit=sa.filter(a=>a.sev==='crit'), warn=sa.filter(a=>a.sev==='warn');
+
+  let h=`<div class="page-head"><div><h1>Organisation Alerts</h1>
+    <p>Cross-site patterns first. A systemic issue fixed once is fixed everywhere</p></div></div>
+    <div class="alerts-head">
+      <span class="pill sys">${sys.filter(a=>!a.resolved).length} Systemic</span>
+      <span class="pill crit">${crit.filter(a=>!a.resolved).length} Site critical</span>
+      <span class="pill warn">${warn.filter(a=>!a.resolved).length} Warning</span></div>`;
+
+  h+=`<div class="secti sys">Systemic · same pressure, multiple sites</div>`;
+  h+= sys.length? sys.map(a=>alertCard(a)).join('') : `<div class="empty">No cross-site patterns 🎉</div>`;
+  h+=`<div class="secti crit">Site critical</div>`;
+  h+= crit.length? crit.map(a=>alertCard(a)).join('') : `<div class="empty">No site criticals</div>`;
+  h+=`<div class="secti warn">Warnings</div>`;
+  h+= warn.length? warn.map(a=>alertCard(a)).join('') : `<div class="empty">No warnings</div>`;
+  main.innerHTML=h;
+}
+function alertCard(a){
+  const isSys=a.sev==='sys';
+  const btnLabel=isSys?'Open review':'Notify site lead';
+  return `<div class="acard ${a.sev} ${a.resolved?'resolved':''}">
+    <div class="aic">${a.icon}</div>
+    <div class="ab"><b>${a.title}</b><p>${a.desc}</p>
+      <div class="meta">${isSys?`<span>Zone: ${a.zone}</span><span>Stores: ${a.stores.length}</span>`
+        :`<span>Site: ${a.store.name}</span><span>Region: ${a.store.region}</span>`}
+      <span class="imp">Impact: ${a.impact.toLocaleString()} colleagues</span></div></div>
+    <div class="right"><div style="font-size:11.5px;color:var(--muted2)">live</div>
+      ${a.resolved?`<button class="takebtn">✓ ${isSys?'Review opened':'Site lead notified'}</button>`
+        :`<button class="takebtn ${a.sev==='warn'?'warn':isSys?'sys':''}" onclick="act('${a.key}')">${btnLabel}</button>`}</div>
+  </div>`;
+}
+function act(key){
+  resolved[key]=true;
+  render();
+  if(key.startsWith('sys-')){
+    toast('purple','People review opened: '+key.replace('sys-','')+' pattern shared with all affected site leads');
+  } else {
+    const st=STORES.find(s=>'store-'+s.id===key);
+    toast('green','Site lead at '+(st?st.name:'site')+' notified. Their MoodLoop Staff alert is now flagged from the centre');
+  }
+}
+
+/* ---------- drill / nav ---------- */
+function drill(id){drillStore=id;view='estate';render();toast('purple','Drilled into '+STORES.find(s=>s.id===id).name)}
+function backToEstate(){drillStore=null;render()}
+document.getElementById('nav').addEventListener('click',e=>{
+  const a=e.target.closest('a');if(!a)return;
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('on'));
+  a.classList.add('on');view=a.dataset.view;
+  if(view==='estate')drillStore=null;
+  render();
+});
+document.getElementById('fRegion').addEventListener('change',()=>{drillStore=null;render()});
+document.getElementById('fDate').addEventListener('change',()=>render());
+
+/* ---------- SVG helpers ---------- */
+function gaugeSVG(pulse,word){
+  const r=78,C=2*Math.PI*r,off=C*(1-pulse/100);
+  return `<div class="gauge">
+    <svg width="190" height="190" viewBox="0 0 190 190">
+      <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#a855f7"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs>
+      <circle cx="95" cy="95" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="13"/>
+      <circle cx="95" cy="95" r="${r}" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"
+        stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 95 95)"
+        style="transition:stroke-dashoffset .6s ease"/>
+    </svg>
+    <div class="ctr"><b>${Math.round(pulse)}</b><span>${word}</span></div>
+  </div>`;
+}
+function lineSVG(labels,vals,dipIdx,dipLabel){
+  const W=1000,H=240,pad=44,bottom=H-32,top=18;
+  const xx=i=>pad+i*((W-pad-20)/(labels.length-1));
+  const yy=v=>bottom-(v/100)*(bottom-top);
+  const pts=vals.map((v,i)=>[xx(i),yy(v)]);
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=line+` L ${xx(labels.length-1)} ${bottom} L ${pad} ${bottom} Z`;
+  let grid='';
+  [0,25,50,75,100].forEach(g=>{const y=yy(g);grid+=`<line x1="${pad}" y1="${y}" x2="${W-20}" y2="${y}" stroke="rgba(255,255,255,.06)"/><text x="${pad-10}" y="${y+4}" fill="#7c6f99" font-size="11" text-anchor="end">${g}%</text>`;});
+  const xlab=labels.map((l,i)=>`<text x="${xx(i)}" y="${H-10}" fill="#7c6f99" font-size="11" text-anchor="middle">${l}</text>`).join('');
+  const dots=pts.map((p,i)=>{const col=i===dipIdx?'#eab308':(i===pts.length-1?'#ec4899':'#a855f7');
+    return `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="${col}" stroke="#120e1c" stroke-width="2"/>`;}).join('');
+  let annot='';
+  if(dipIdx!=null){const p=pts[dipIdx];
+    annot=`<line x1="${p[0]}" y1="${p[1]}" x2="${p[0]}" y2="${p[1]+30}" stroke="#eab308" stroke-dasharray="3 3"/>
+      <rect x="${p[0]-88}" y="${p[1]+30}" width="176" height="22" rx="6" fill="rgba(234,179,8,.15)" stroke="rgba(234,179,8,.5)"/>
+      <text class="annot" x="${p[0]}" y="${p[1]+45}" text-anchor="middle">${dipLabel}</text>`;}
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    <defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a855f7" stop-opacity=".45"/><stop offset="1" stop-color="#a855f7" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<path d="${area}" fill="url(#area)"/><path d="${line}" fill="none" stroke="#c026d3" stroke-width="3"/>
+    ${dots}${annot}${xlab}</svg>`;
+}
+
+/* ---------- exports + toast ---------- */
+function exportCSV(){
+  let rows=[['Store','Region','Zone','Very happy','Happy','Not happy','Very unhappy','Zone happiness']];
+  STORES.forEach(st=>ZONES.forEach(z=>{
+    const a=st.agg[z];
+    rows.push([st.name,st.region,z,a.vhappy,a.happy,a.nhappy,a.vunhappy,zoneHappiness(a).toFixed(1)]);
+  }));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='moodloop-estate-export.csv';a.click();URL.revokeObjectURL(url);
+  toast('purple','Estate CSV exported');
+}
+function exportPDF(){toast('purple','Opening print view…');setTimeout(()=>window.print(),300)}
+
+let tT;
+function toast(color,msg){
+  const c={green:'var(--green)',red:'var(--red)',yellow:'var(--yellow)',purple:'var(--purple)'}[color]||'var(--purple)';
+  const el=document.getElementById('toast');
+  el.innerHTML=`<span class="td" style="background:${c}"></span> ${msg}`;
+  el.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+/* init */
+render();
+</script>
+
+<script>
+/* ---- guided tour (site edition; skippable) ---- */
+(function(){
+  var STEPS=["The <b>organisation view</b> for HR and executive teams: a single staff pulse across every site, with a heatmap showing where people are thriving and where they are under pressure. Note the <b>SYSTEMIC</b> badges.", "Click a red site tile to <b>drill down</b>. You see what that site's leadership sees: team pulse and anonymous colleague voices. The breadcrumb brings you back up.", "Open <b>Alerts</b>. Cross-site patterns rank above local ones: the same team struggling at three sites is a rota or process problem, not three local ones. Fixed once, fixed everywhere.", "Actions fit the altitude: <b>Open review</b> for systemic patterns, <b>Notify site lead</b> to flag a site's own dashboard. Try the region filter too. Everything here rolls up from single anonymous taps in break rooms and corridors."];
+  var i=0;
+  var css=document.createElement('style');
+  css.textContent='#ltour{position:fixed;bottom:22px;left:22px;z-index:500;width:330px;max-width:88vw;'+
+    'background:#153627;color:#F3F0E7;border:1px solid #2F5A48;border-radius:16px;'+
+    'box-shadow:0 18px 50px rgba(0,0,0,.35);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;'+
+    'transform:translateY(12px);opacity:0;transition:.35s;pointer-events:none}'+
+    '#ltour.show{transform:none;opacity:1;pointer-events:auto}'+
+    '#ltour .th{display:flex;align-items:center;gap:9px;padding:13px 16px 10px;font-size:11px;font-weight:700;'+
+    'letter-spacing:.12em;text-transform:uppercase;color:#d1a4ff}'+
+    '#ltour .th .cnt{margin-left:auto;font-weight:600;letter-spacing:0;opacity:.7}'+
+    '#ltour .tb{padding:0 16px 12px;font-size:13px;line-height:1.55}'+
+    '#ltour .tb b{color:#d1a4ff}'+
+    '#ltour .tf{display:flex;gap:8px;padding:0 16px 15px;align-items:center}'+
+    '#ltour button{border:none;border-radius:9px;padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}'+
+    '#ltour .nxt{background:#d1a4ff;color:#fff}'+
+    '#ltour .bck{background:transparent;color:inherit;border:1px solid #2F5A48;opacity:.8}'+
+    '#ltour .skp{margin-left:auto;background:none;border:none;font-size:11.5px;opacity:.6;text-decoration:underline;cursor:pointer;color:inherit}'+
+    '#ltRestart{position:fixed;bottom:22px;left:22px;z-index:499;border:none;border-radius:999px;padding:9px 15px;'+
+    'font-size:11.5px;font-weight:700;cursor:pointer;background:#d1a4ff;color:#fff;opacity:.9;display:none;'+
+    'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3)}';
+  document.head.appendChild(css);
+  var el=document.createElement('div'); el.id='ltour';
+  el.innerHTML='<div class="th">&#9654; Guided tour <span class="cnt"></span></div><div class="tb"></div>'+
+    '<div class="tf"><button class="bck">Back</button><button class="nxt">Next</button><button class="skp">Skip tour</button></div>';
+  document.body.appendChild(el);
+  var rb=document.createElement('button'); rb.id='ltRestart'; rb.innerHTML='&#9654; Tour';
+  document.body.appendChild(rb);
+  function paint(){
+    el.querySelector('.cnt').textContent=(i+1)+' / '+STEPS.length;
+    el.querySelector('.tb').innerHTML=STEPS[i];
+    el.querySelector('.bck').style.visibility=i?'visible':'hidden';
+    el.querySelector('.nxt').textContent=(i===STEPS.length-1)?'Finish':'Next';
+  }
+  function hide(){el.classList.remove('show');rb.style.display='block'}
+  function show(){i=0;paint();el.classList.add('show');rb.style.display='none'}
+  el.querySelector('.nxt').addEventListener('click',function(){ if(i===STEPS.length-1){hide();return} i++;paint(); });
+  el.querySelector('.bck').addEventListener('click',function(){ if(i>0){i--;paint();} });
+  el.querySelector('.skp').addEventListener('click',hide);
+  rb.addEventListener('click',show);
+  setTimeout(show,900);
+})();
+</script>
+</body>
+</html>
